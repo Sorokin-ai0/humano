@@ -45,3 +45,14 @@ test("public error responses do not expose providers or credentials", async () =
   assert.doesNotMatch(body, /OpenRouter|sk-or-/i);
   assert.match(body, /Humano couldn't respond/i);
 });
+
+test("missing model connection returns an actionable safe error", async () => {
+  const response = errorResponse(
+    new Error("OPENROUTER_API_KEY is required."),
+  );
+  const body = JSON.stringify(await response.json());
+
+  assert.equal(response.status, 503);
+  assert.match(body, /OPENROUTER_API_KEY/);
+  assert.doesNotMatch(body, /sk-or-/i);
+});

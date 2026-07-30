@@ -7,8 +7,7 @@ import {
 } from "@/src/humano/http/http-guards";
 import {
   clearedConsentCookie,
-  researchConsentReceiptId,
-  researchPreviewConsentVersion,
+  researchConsentClaims,
 } from "@/src/humano/http/research-preview-access";
 
 const deletionSchema = z.object({
@@ -28,15 +27,8 @@ export async function DELETE(request: Request) {
 
   try {
     const body = deletionSchema.parse(await request.json());
-    const receiptId = researchConsentReceiptId(request);
-    if (
-      !receiptId ||
-      !(await runtime.repository.hasResearchConsentForSubject(
-        receiptId,
-        researchPreviewConsentVersion,
-        body.subjectId as SubjectId,
-      ))
-    ) {
+    const claims = await researchConsentClaims(request);
+    if (!claims || claims.subjectId !== body.subjectId) {
       return Response.json(
         {
           error: {

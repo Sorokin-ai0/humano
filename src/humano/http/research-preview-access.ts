@@ -1,6 +1,11 @@
 export const researchPreviewConsentVersion =
-  "research-preview-2026-07-30-v2-liability";
+  "research-preview-2026-07-30-v3-signed";
 export const researchPreviewCookieName = "humano_research_consent";
+
+export interface ResearchConsentClaims {
+  receiptId: string;
+  subjectId: string;
+}
 
 interface CloudflareRequest extends Request {
   cf?: {
@@ -29,34 +34,39 @@ export function isUnitedStatesRequest(request: Request): boolean {
   return true;
 }
 
-export function hasResearchPreviewConsent(request: Request): boolean {
-  return researchConsentReceiptId(request) !== null;
-}
-
-export function researchConsentReceiptId(request: Request): string | null {
+function researchConsentCookieValue(request: Request): string | null {
   const cookieHeader = request.headers.get("Cookie") ?? "";
-  const value = cookieHeader
+  return (
+    cookieHeader
     .split(";")
     .map((cookie) => cookie.trim())
     .find((cookie) => cookie.startsWith(`${researchPreviewCookieName}=`))
-    ?.slice(researchPreviewCookieName.length + 1);
+    ?.slice(researchPreviewCookieName.length + 1) ?? null
+  );
+}
+
+export async function researchConsentClaims(
+  request: Request,
+): Promise<ResearchConsentClaims | null> {
+  const value = researchConsentCookieValue(request);
   if (!value) return null;
-  const prefix = `${researchPreviewConsentVersion}.`;
-  if (!value.startsWith(prefix)) return null;
-  const receiptId = value.slice(prefix.length);
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(
-    receiptId,
-  )
-    ? receiptId
-    : null;
+  const [version, receiptId, subjectId, signature, extra] = value.split(".");
+  if (
+    extra !== undefined ||
+    version !== researchPreviewConsentVersion ||
+    !isUuid(receiptId) ||
+    !isUuid(subjectId) ||
+    !signature
+  ) {
+    return null;
+  }
+  const expected = await signConsent(`${version}.${receiptId}.${subjectId}`);
+  if (!expected || !constantTimeEqual(signature, expected)) return null;
+  return { receiptId, subjectId };
 }
 
 export async function requireResearchPreviewAccess(
   request: Request,
-  verifyReceipt: (
-    receiptId: string,
-    consentVersion: string,
-  ) => Promise<boolean>,
 ): Promise<Response | null> {
   if (!isUnitedStatesRequest(request)) {
     return Response.json(
@@ -73,11 +83,7 @@ export async function requireResearchPreviewAccess(
       },
     );
   }
-  const receiptId = researchConsentReceiptId(request);
-  if (
-    !receiptId ||
-    !(await verifyReceipt(receiptId, researchPreviewConsentVersion))
-  ) {
+  if (!(await researchConsentClaims(request))) {
     return Response.json(
       {
         error: {
@@ -94,15 +100,66 @@ export async function requireResearchPreviewAccess(
   return null;
 }
 
-export function consentCookie(
+export async function consentCookie(
   request: Request,
   receiptId: string,
-): string {
+  subjectId: string,
+): Promise<string> {
+  const payload = `${researchPreviewConsentVersion}.${receiptId}.${subjectId}`;
+  const signature = await signConsent(payload);
+  if (!signature) {
+    throw new Error("Research preview signing is not configured.");
+  }
   const secure = new URL(request.url).protocol === "https:" ? "; Secure" : "";
-  return `${researchPreviewCookieName}=${researchPreviewConsentVersion}.${receiptId}; Path=/; Max-Age=15552000; HttpOnly; SameSite=Strict${secure}`;
+  return `${researchPreviewCookieName}=${payload}.${signature}; Path=/; Max-Age=15552000; HttpOnly; SameSite=Strict${secure}`;
 }
 
 export function clearedConsentCookie(request: Request): string {
   const secure = new URL(request.url).protocol === "https:" ? "; Secure" : "";
   return `${researchPreviewCookieName}=; Path=/; Max-Age=0; HttpOnly; SameSite=Strict${secure}`;
+}
+
+async function signConsent(payload: string): Promise<string | null> {
+  const secret =
+    process.env.HUMANO_CONSENT_SECRET ?? process.env.OPENROUTER_API_KEY;
+  if (!secret) return null;
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(payload),
+  );
+  return base64Url(new Uint8Array(signature));
+}
+
+function base64Url(bytes: Uint8Array): string {
+  return Buffer.from(bytes)
+    .toString("base64")
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replace(/=+$/u, "");
+}
+
+function constantTimeEqual(left: string, right: string): boolean {
+  if (left.length !== right.length) return false;
+  let difference = 0;
+  for (let index = 0; index < left.length; index += 1) {
+    difference |= left.charCodeAt(index) ^ right.charCodeAt(index);
+  }
+  return difference === 0;
+}
+
+function isUuid(value: string | undefined): value is string {
+  return Boolean(
+    value &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(
+        value,
+      ),
+  );
 }

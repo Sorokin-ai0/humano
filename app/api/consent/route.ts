@@ -9,10 +9,9 @@ import {
 import {
   clearedConsentCookie,
   consentCookie,
-  hasResearchPreviewConsent,
   isUnitedStatesRequest,
   requestCountry,
-  researchConsentReceiptId,
+  researchConsentClaims,
   researchPreviewConsentVersion,
 } from "@/src/humano/http/research-preview-access";
 
@@ -29,16 +28,8 @@ const consentSchema = z.object({
 
 export async function GET(request: Request) {
   const eligibleCountry = isUnitedStatesRequest(request);
-  let accepted = false;
-  if (eligibleCountry && hasResearchPreviewConsent(request)) {
-    const receiptId = researchConsentReceiptId(request);
-    if (receiptId) {
-      accepted = await getHumanoRuntime().repository.hasResearchConsent(
-        receiptId,
-        researchPreviewConsentVersion,
-      );
-    }
-  }
+  const accepted =
+    eligibleCountry && (await researchConsentClaims(request)) !== null;
   return Response.json(
     {
       accepted,
@@ -110,7 +101,11 @@ export async function POST(request: Request) {
       {
         headers: {
           "Cache-Control": "no-store",
-          "Set-Cookie": consentCookie(request, receiptId),
+          "Set-Cookie": await consentCookie(
+            request,
+            receiptId,
+            consent.subjectId,
+          ),
         },
       },
     );

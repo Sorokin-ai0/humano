@@ -43,6 +43,12 @@ Humano deploys to Vercel as a Next.js application. Configure
 `OPENROUTER_API_KEY` as a server-side Vercel environment variable; never
 expose it to the browser.
 
+Research-preview access is carried in a signed, HTTP-only cookie so consent
+verification works across separate Vercel serverless instances. Set
+`HUMANO_CONSENT_SECRET` to a long random server-side value for an independent
+signing key; if omitted, the preview uses `OPENROUTER_API_KEY` as its signing
+secret.
+
 The initial Vercel preview uses in-memory storage for conversations, memory,
 feedback, and preview consent, so that data can disappear after a serverless
 instance restarts. Before a public launch, replace the in-memory adapter with

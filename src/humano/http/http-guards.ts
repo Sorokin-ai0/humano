@@ -30,7 +30,38 @@ export function clientAddress(request: Request): string {
 }
 
 export function errorResponse(error: unknown): Response {
-  void error;
+  if (
+    error instanceof Error &&
+    error.message === "OPENROUTER_API_KEY is required."
+  ) {
+    return Response.json(
+      {
+        error: {
+          code: "MODEL_CONNECTION_NOT_CONFIGURED",
+          message:
+            "Humano isn't connected to its model yet. Add OPENROUTER_API_KEY to this Vercel environment and redeploy.",
+        },
+      },
+      {
+        status: 503,
+        headers: { "Cache-Control": "no-store" },
+      },
+    );
+  }
+  if (error instanceof Error && error.name === "ModelProviderError") {
+    return Response.json(
+      {
+        error: {
+          code: "MODEL_PROVIDER_UNAVAILABLE",
+          message: error.message,
+        },
+      },
+      {
+        status: 502,
+        headers: { "Cache-Control": "no-store" },
+      },
+    );
+  }
   return Response.json(
     {
       error: {

@@ -20,11 +20,7 @@ export async function GET(request: Request) {
         { status: 403 },
       );
     }
-    const researchAccessError = await requireResearchPreviewAccess(
-      request,
-      (receiptId, version) =>
-        runtime.repository.hasResearchConsent(receiptId, version),
-    );
+    const researchAccessError = await requireResearchPreviewAccess(request);
     if (researchAccessError) return researchAccessError;
     const turns = await runtime.engine.history(sessionId as SessionId);
     return Response.json(
@@ -62,11 +58,7 @@ export async function DELETE(request: Request) {
         { status: 403 },
       );
     }
-    const researchAccessError = await requireResearchPreviewAccess(
-      request,
-      (receiptId, version) =>
-        runtime.repository.hasResearchConsent(receiptId, version),
-    );
+    const researchAccessError = await requireResearchPreviewAccess(request);
     if (researchAccessError) return researchAccessError;
     await runtime.engine.newConversation(
       sessionId as SessionId,

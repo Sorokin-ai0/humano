@@ -24,11 +24,7 @@ export async function POST(request: Request) {
         { status: 403 },
       );
     }
-    const researchAccessError = await requireResearchPreviewAccess(
-      request,
-      (receiptId, version) =>
-        runtime.repository.hasResearchConsent(receiptId, version),
-    );
+    const researchAccessError = await requireResearchPreviewAccess(request);
     if (researchAccessError) return researchAccessError;
     await runtime.engine.recordFeedback({
       sessionId: body.sessionId as SessionId,
