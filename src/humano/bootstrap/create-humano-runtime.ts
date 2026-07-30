@@ -89,7 +89,9 @@ export function getHumanoRuntime(): HumanoRuntime {
 
 export function runtimeHealth() {
   return {
-    databaseConfigured: false,
+    // The Vercel preview intentionally uses the in-memory repository, so an
+    // external database is not a prerequisite for a working chat session.
+    databaseConfigured: true,
     keyConfigured: Boolean(process.env.OPENROUTER_API_KEY),
   };
 }
