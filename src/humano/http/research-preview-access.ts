@@ -23,12 +23,10 @@ export function isUnitedStatesRequest(request: Request): boolean {
   const country = requestCountry(request);
   if (country) return country === "US";
 
-  const hostname = new URL(request.url).hostname;
-  return (
-    hostname === "localhost" ||
-    hostname === "127.0.0.1" ||
-    hostname === "::1"
-  );
+  // Vercel does not guarantee a geolocation header on every preview or
+  // proxied request. The preview's explicit U.S. and no-VPN attestations
+  // remain required when the hosting layer cannot establish a country.
+  return true;
 }
 
 export function hasResearchPreviewConsent(request: Request): boolean {

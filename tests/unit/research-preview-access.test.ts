@@ -13,6 +13,11 @@ test("research preview allows local development without location metadata", () =
   assert.equal(isUnitedStatesRequest(request), true);
 });
 
+test("research preview falls back to the required user attestation when geo data is unavailable", () => {
+  const request = new Request("https://humano.vercel.app/api/consent");
+  assert.equal(isUnitedStatesRequest(request), true);
+});
+
 test("research preview accepts a consented US request", () => {
   const receiptId = "11111111-1111-4111-8111-111111111111";
   const request = new Request("https://humano.example/api/chat", {
