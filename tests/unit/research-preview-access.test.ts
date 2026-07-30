@@ -30,6 +30,13 @@ test("research preview accepts a consented US request", () => {
   ).then((result) => assert.equal(result, null));
 });
 
+test("research preview recognizes Vercel's US country header", () => {
+  const request = new Request("https://humano.vercel.app/api/consent", {
+    headers: { "x-vercel-ip-country": "US" },
+  });
+  assert.equal(isUnitedStatesRequest(request), true);
+});
+
 test("research preview rejects a non-US request and a request without consent", async () => {
   const outsideUnitedStates = new Request(
     "https://humano.example/api/chat",

@@ -11,7 +11,12 @@ interface CloudflareRequest extends Request {
 export function requestCountry(request: Request): string | null {
   const cloudflareCountry = (request as CloudflareRequest).cf?.country;
   const headerCountry = request.headers.get("CF-IPCountry");
-  return (cloudflareCountry ?? headerCountry)?.toUpperCase() ?? null;
+  const vercelCountry = request.headers.get("x-vercel-ip-country");
+  return (
+    cloudflareCountry ??
+    headerCountry ??
+    vercelCountry
+  )?.toUpperCase() ?? null;
 }
 
 export function isUnitedStatesRequest(request: Request): boolean {
