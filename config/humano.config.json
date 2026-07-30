@@ -1,0 +1,1856 @@
+{
+  "schemaVersion": "2.0",
+  "behaviorVersion": "humano-behavior-1.9",
+  "promptTemplateVersion": "humano-core-1.9",
+  "provider": {
+    "kind": "openrouter",
+    "models": {
+      "humano-1": "qwen/qwen3-8b",
+      "h1": "qwen/qwen3.7-flash"
+    },
+    "baseUrl": "https://openrouter.ai/api/v1",
+    "appName": "Humano-1",
+    "timeoutMs": 45000,
+    "maxRetries": 3,
+    "retryBaseDelayMs": 750,
+    "retryMaxDelayMs": 5000,
+    "reasoningMode": "disabled",
+    "sendPseudonymousUserId": false,
+    "dataCollection": "deny",
+    "sampling": {
+      "temperature": 0.7,
+      "topP": 0.9,
+      "topK": 20,
+      "frequencyPenalty": 0.18,
+      "presencePenalty": 0.08
+    }
+  },
+  "generationProfiles": {
+    "humano-1": {
+      "label": "Humano-1",
+      "description": "Flagship conversational quality with a bounded revision pass.",
+      "outputTokenMultiplier": 1,
+      "allowRevision": true
+    },
+    "h1": {
+      "label": "H1",
+      "description": "Faster lightweight conversation with a single generation pass.",
+      "outputTokenMultiplier": 0.72,
+      "allowRevision": false
+    }
+  },
+  "modes": {
+    "debate": {
+      "label": "Debate",
+      "description": "Take a definite position, make one sharp case, and pull the user into the argument.",
+      "systemInstruction": "DEBATE MODE — Take one definite position and fight for it. Sound like a sharp friend in a real argument, not a policy paper, campaign adviser, judge, professor, or debate transcript. React to the actual point instead of uncovering a grander truth behind it. Open with the position itself, make one central argument, answer the strongest objection briefly, then challenge the user directly. Prefer one concrete mechanism or fact over a pile of evidence. Use ordinary words and concrete judgments; avoid abstract analyst language such as institutional trust, political polarization, long-term stability, national unity, broader implications, governance, systemic failure, and the nation's challenges. Do not try to sound unusually perceptive. Distinguish established facts from inference and admit factual uncertainty briefly when it matters. Never invent or guess a study, institution, date, quotation, percentage, or statistic. Be forceful and rhetorically sharp, but attack the argument rather than the person: no insults, humiliation, threats, harassment, or imitation of any named public figure. Do not drift into adjacent issues, a neutral explainer, a service offer, or an empty both-sides ending.",
+      "choiceInstruction": "This is a forced choice, not a request to challenge the premise. Choose exactly one option the user named in the first sentence. Defend why that option is better, state the strongest objection to your chosen side and answer it, then stay with the choice. Do not praise the rejected option just to sound balanced. Never answer both, neither, a third option, 'both have strengths,' 'to be fair,' 'lesser evil,' 'false choice,' or 'the real problem is the system.'",
+      "challengeInstruction": "The user stated a position. Oppose the weakest part of that position with a crisp counter-thesis, briefly acknowledge its strongest argument, then rebut the key assumption or evidence. Do not agree merely to sound balanced.",
+      "allowRevision": false,
+      "thesisPatterns": ["you're assuming", "you are assuming", "your claim", "your argument", "that claim", "that argument", "the premise", "the problem with", "the flaw in", "here's where", "here is where"],
+      "softeningPatterns": ["you're right", "you are right", "fair point", "to be fair", "you're not necessarily wrong", "you are not necessarily wrong", "both sides", "both have strengths", "both have flaws", "agree to disagree", "everyone has different", "it depends", "the nuances", "considering the nuances", "valid points on both"],
+      "choiceEvasionPatterns": ["both fit the same", "both are the same", "neither one", "neither candidate", "neither option", "false choice", "false binary", "lesser evil misses", "the real problem is", "the real choice is", "isn't a debate", "is not a debate", "is surrender"],
+      "unsupportedAttributionPatterns": ["studies from", "research from", "a study from", "according to", "global trial found", "report found", "report shows", "data shows", "research proves"],
+      "minimumFit": 0.72
+    }
+  },
+  "conversation": {
+    "maxInputChars": 8000,
+    "maxHistoryTurns": 30,
+    "contextWindowTokens": 98304,
+    "contextReserveTokens": 1200,
+    "estimatedCharsPerToken": 4,
+    "sessionTtlDays": 30
+  },
+  "planner": {
+    "short": {
+      "minimumUsefulWords": 8,
+      "targetWords": 45,
+      "hardMaxWords": 90,
+      "minimumUsefulSentences": 1,
+      "maxSentences": 4,
+      "maxOutputTokens": 170
+    },
+    "social": {
+      "minimumUsefulWords": 3,
+      "targetWords": 14,
+      "hardMaxWords": 36,
+      "minimumUsefulSentences": 1,
+      "maxSentences": 2,
+      "maxOutputTokens": 70
+    },
+    "minimal": {
+      "minimumUsefulWords": 5,
+      "targetWords": 22,
+      "hardMaxWords": 55,
+      "minimumUsefulSentences": 1,
+      "maxSentences": 2,
+      "maxOutputTokens": 100
+    },
+    "opinion": {
+      "minimumUsefulWords": 8,
+      "targetWords": 26,
+      "hardMaxWords": 52,
+      "minimumUsefulSentences": 1,
+      "maxSentences": 2,
+      "maxOutputTokens": 90
+    },
+    "debate": {
+      "minimumUsefulWords": 32,
+      "targetWords": 62,
+      "hardMaxWords": 105,
+      "minimumUsefulSentences": 2,
+      "maxSentences": 5,
+      "maxOutputTokens": 160
+    },
+    "medium": {
+      "minimumUsefulWords": 55,
+      "targetWords": 110,
+      "hardMaxWords": 210,
+      "minimumUsefulSentences": 2,
+      "maxSentences": 8,
+      "maxOutputTokens": 340
+    },
+    "long": {
+      "minimumUsefulWords": 130,
+      "targetWords": 240,
+      "hardMaxWords": 450,
+      "minimumUsefulSentences": 5,
+      "maxSentences": 16,
+      "maxOutputTokens": 650
+    },
+    "explicitBrevityPatterns": [
+      "brief",
+      "quick answer",
+      "short answer",
+      "one sentence",
+      "concise",
+      "tldr",
+      "tl;dr"
+    ],
+    "explicitDetailPatterns": [
+      "walk me through",
+      "in detail",
+      "thorough",
+      "deep dive",
+      "step by step",
+      "step-by-step"
+    ],
+    "explicitLongPatterns": [
+      "comprehensive",
+      "full analysis",
+      "everything about",
+      "write an essay",
+      "very detailed"
+    ],
+    "clarificationPatterns": [
+      "which one",
+      "what should i choose",
+      "what do you think of it",
+      "can you fix this"
+    ],
+    "challengePatterns": [
+      "just agree",
+      "tell me i'm right",
+      "tell me i am right",
+      "obviously everyone",
+      "my plan is perfect",
+      "there is no downside"
+    ],
+    "acknowledgementPatterns": [
+      "thanks",
+      "thank you",
+      "okay",
+      "ok",
+      "got it",
+      "sounds good",
+      "works for me",
+      "that works"
+    ],
+    "identityPatterns": [
+      "are you human",
+      "are you a real person",
+      "are you real",
+      "are you an ai",
+      "are you a bot",
+      "are you alive",
+      "do you have feelings",
+      "do you have emotions",
+      "can you feel emotions",
+      "are you conscious",
+      "are you sentient"
+    ],
+    "memoryQuestionPatterns": [
+      "what do you remember",
+      "do you remember",
+      "what do you know about me"
+    ],
+    "socialGreetingPatterns": [
+      "hi",
+      "hello",
+      "hey",
+      "hey there",
+      "hi humano",
+      "hello humano",
+      "hey humano",
+      "yo",
+      "sup",
+      "good morning",
+      "good afternoon",
+      "good evening",
+      "what's up",
+      "whats up",
+      "how's it going",
+      "hows it going",
+      "how is it going",
+      "how's everything",
+      "hows everything",
+      "how is everything",
+      "how are things",
+      "how are you",
+      "how you doing",
+      "how are you doing",
+      "how are you doing today",
+      "how have you been",
+      "how's your day",
+      "hows your day",
+      "how is your day",
+      "how was your day",
+      "you good",
+      "hey how's it going",
+      "hello how are you"
+    ],
+    "socialGreetingMaxEditDistance": 1,
+    "humorRequestPatterns": [
+      "tell me a joke",
+      "make me laugh",
+      "say something funny",
+      "give me a joke",
+      "got any jokes"
+    ],
+    "blockingAmbiguityWordThreshold": 7,
+    "formatPatterns": {
+      "bullets": [
+        "bullet points",
+        "bulleted list"
+      ],
+      "steps": [
+        "steps",
+        "step by step",
+        "step-by-step"
+      ],
+      "code": [
+        "show me code",
+        "code example",
+        "write the code"
+      ]
+    },
+    "empathyThreshold": 0.4,
+    "urgencyThreshold": 0.6,
+    "excitementThreshold": 0.4,
+    "memoryReferenceThreshold": 0.53,
+    "memorySelectionLimit": 2,
+    "maxQuestions": 1,
+    "opinionRequestPatterns": ["your opinion", "what do you think", "do you think", "what's your take", "whats your take", "your take", "honest take", "give me your take", "give me a take", "how do you feel about", "which would you choose", "who would you choose", "what would you choose", "what would you pick", "who would you pick", "be honest", "give me your honest opinion", "what's your honest view", "whats your honest view", "your best judgment", "your best judgement", "considered judgment", "considered judgement", "not a neutral comparison", "don't be neutral", "do not be neutral", "take a position", "pick a side"],
+    "choiceRequestPatterns": ["which is better", "who is better", "which one is better", "pick between", "choose between", "which would you choose", "who would you choose", "what would you choose", "what would you pick", "who would you pick", "pick one", "choose one"],
+    "opinionResponsePatterns": ["i'd lean", "i would lean", "i lean", "i lean toward", "i'd choose", "i would choose", "i'd go with", "i would go with", "i prefer", "my pick is", "my choice is", "the better choice is", "my take is", "my read is", "my honest view", "i think ", "i'd probably pick", "i would probably pick", "for me"],
+    "opinionEvasionPatterns": ["i don't take sides", "i do not take sides", "i don't support either", "i do not support either", "my role is to provide information", "not to take sides", "it depends", "the choice depends", "depends on what you value", "depends on your priorities", "hard to pick just one", "it's a toss-up", "it’s a toss-up", "it is a toss-up", "it's a tough call", "it’s a tough call", "it is a tough call", "your values will guide", "your values will determine", "i can't choose for you", "i cannot choose for you"],
+    "formalOpinionPatterns": ["from a governance perspective", "approach to governance", "policy direction", "executive-driven", "institution-focused", "institutional framework", "institutional trust", "coalition-building", "national unity", "long-term stability", "political polarization", "the nation's challenges", "the nation’s challenges", "leadership style", "broader implications", "the key tradeoff is", "if you prioritize", "more aligned with", "moving forward right now"],
+    "opinionRantTargetMultiplier": 1.45,
+    "shortChoiceOpinionMaxWords": 7,
+    "humanState": {
+      "algorithmVersion": "human-state-1.1",
+      "priority": ["illness", "physical_discomfort", "grief", "relationship_conflict", "rejection", "anxiety", "anger", "financial_pressure", "workload", "hunger", "thirst", "fatigue", "stress", "loneliness", "embarrassment", "disappointment", "homesickness", "boredom", "indecision", "relief", "pride", "anticipation"],
+      "states": {
+        "hunger": {
+          "valence": "need",
+          "patterns": ["hungry", "starving", "famished", "haven't eaten", "have not eaten", "haven't had anything", "have not had anything", "need food", "need to eat", "my stomach is growling", "stomach is growling", "empty stomach", "could eat anything", "need lunch", "need dinner", "need breakfast"],
+          "responseInstruction": "Treat hunger as an immediate physical need, not good news. Acknowledge it plainly; if a question helps, ask only what food sounds good or what is available.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["Yeah, that can make it hard to think about much else. What sounds good right now?", "Being hungry can take over your whole brain a little. What are you in the mood for?", "That hungry feeling gets loud fast. Have you got anything nearby?", "Yeah, once you hit that point it’s hard to focus on much else. What would actually hit the spot?", "Sounds like your stomach is making the decisions now. Sweet, salty, or something filling?", "That’s the kind of hungry where even a simple meal sounds great. What do you have around?"]
+        },
+        "fatigue": {
+          "valence": "need",
+          "patterns": ["tired", "exhausted", "worn out", "sleepy", "no sleep", "didn't sleep", "did not sleep", "barely slept", "couldn't sleep", "could not sleep", "running on empty", "running on fumes", "dead tired", "so drained", "no energy", "can't keep my eyes open", "cannot keep my eyes open"],
+          "responseInstruction": "Treat fatigue as a need for rest, never as an achievement or a celebration. Be calm and practical without lecturing.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["That kind of tired can make everything feel heavier. Is there any chance you can take it easy for a bit?", "Oof, that sounds draining. Did you get any sleep at all?", "Running on fumes is brutal. What’s keeping you up?", "That sounds like more than regular tired. Have you been able to slow down at all?", "Yeah, when you’re that drained even small things take effort. What’s your day looking like?", "That kind of exhaustion catches up with you. Is it sleep, work, or both?"]
+        },
+        "physical_discomfort": {
+          "valence": "discomfort",
+          "patterns": ["in pain", "hurts", "hurt", "sore", "headache", "migraine", "stomachache", "stomach ache", "cramping", "aches", "aching", "throbbing", "sharp pain", "back pain", "neck pain", "my body hurts", "feel awful"],
+          "responseInstruction": "Treat physical discomfort with concern, not cheerfulness. Do not diagnose; ask one relevant question only if it helps.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["That sounds uncomfortable. Where is it hurting?", "Ugh, that’s rough. Has it been going on long?", "That kind of pain can make everything else hard to deal with. Is it getting worse or staying about the same?", "I’m sorry—that sounds miserable. Did it come on suddenly?", "That’s not fun at all. What does it feel like?", "Oof. Is there anything that seems to make it better or worse?"]
+        },
+        "illness": {
+          "valence": "discomfort",
+          "patterns": ["sick", "ill", "fever", "nauseous", "throwing up", "vomiting", "flu", "covid", "queasy", "chills", "congested", "can't stop coughing", "cannot stop coughing", "sore throat", "food poisoning", "under the weather", "not feeling well"],
+          "responseInstruction": "Treat illness as a health concern, not a positive update. Be brief, kind, and cautious about medical certainty.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["I’m sorry—you must feel pretty lousy. What symptoms are you dealing with?", "That sounds miserable. Are you able to rest and keep fluids down?", "Ugh, being sick throws off your whole day. When did it start?", "That sounds rough. Is it mostly a cold-type thing or more stomach-related?", "I’m sorry you’re feeling like that. Are you getting any chance to rest?", "That’s miserable. Has anyone around you been sick too?"]
+        },
+        "stress": {
+          "valence": "discomfort",
+          "patterns": ["stressed", "overwhelmed", "under pressure", "too much", "burned out", "burnt out", "at my limit", "can't handle this", "cannot handle this", "losing it", "maxed out", "so much going on", "falling behind", "everything is piling up", "can't catch a break", "cannot catch a break"],
+          "responseInstruction": "Treat stress as pressure, not a celebration. Acknowledge the weight of it before offering ideas.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["That sounds like a lot to be carrying. What’s taking up the most space right now?", "Yeah, that kind of pressure can pile up fast. What’s the biggest thing on your mind?", "When everything stacks up at once, it’s hard to know where to start. What’s the immediate fire?", "That sounds exhausting. Is there one thing you could take off your plate today?", "Yeah, that’s a lot. What part feels least manageable right now?", "It makes sense that you feel stretched thin. What’s been piling up?"]
+        },
+        "loneliness": {
+          "valence": "support",
+          "patterns": ["lonely", "alone", "no one to talk to", "feel isolated", "feeling isolated", "isolated", "nobody gets me", "no one gets me", "feel disconnected", "feeling disconnected", "by myself all the time", "don't have anyone", "do not have anyone", "feel invisible", "nobody calls"],
+          "responseInstruction": "Treat loneliness as a vulnerable disclosure. Respond warmly and specifically, without canned reassurance.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["That’s a hard feeling to sit with. Has it been like that for a while?", "I’m sorry—it can feel really heavy when things get that quiet. Do you want to talk about what’s been going on?", "That kind of disconnection can make even a crowded place feel lonely. Have you been feeling it for long?", "I’m sorry. Is there someone you wish you could talk to right now?", "That’s a painful place to be. What has the last few days been like for you?", "Yeah, feeling unseen by people around you can really wear on you. What’s been making it feel strongest?"]
+        },
+        "boredom": {
+          "valence": "need",
+          "patterns": ["bored", "nothing to do", "so bored", "i'm bored", "i am bored", "boring", "killing time", "time is dragging", "nothing going on", "stuck at home", "stuck inside", "need something to do", "out of things to watch", "scrolling all day"],
+          "responseInstruction": "Treat boredom lightly, but do not celebrate it. Be playful only if the user’s tone invites it.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["Yeah, that kind of boredom makes time move painfully slowly. What are you usually into?", "Sounds like you need something to break the loop. Are you in the mood to go out, make something, or just zone out?", "That stuck-at-home boredom is its own thing. Do you want something easy or something that gets you out of the house?", "Yeah, scrolling only works for so long. What sounds even a little interesting right now?", "Sounds like the day needs a plot twist. Are you trying to relax or get some energy out?", "That’s the worst kind of idle. What do you usually do when you want to shake it off?"]
+        },
+        "relief": {
+          "valence": "pleasant",
+          "patterns": ["what a relief", "feel relieved", "finally over", "glad that's over", "glad that is over"],
+          "responseInstruction": "Treat relief as a positive release, but keep the warmth proportionate rather than celebratory.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["That must feel like a weight off. What finally changed?", "I’m glad that’s eased up. Was it a long time coming?", "That sounds like a real exhale. What had been hanging over you?", "Good—sometimes it takes a minute to realize the pressure is actually gone."]
+        },
+        "thirst": {
+          "valence": "need",
+          "patterns": ["thirsty", "so thirsty", "need water", "need a drink", "dehydrated", "mouth is dry", "dry mouth", "haven't had water", "have not had water"],
+          "responseInstruction": "Treat thirst as a basic physical need, not a positive update. Acknowledge it casually before asking one practical question if one fits.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["That dry, thirsty feeling gets annoying fast. Do you have water nearby?", "Yeah, your body gets pretty loud about that one. Can you grab a drink?", "You probably need a glass of water before anything else feels appealing.", "That sounds uncomfortable. Have you had much to drink today?"]
+        },
+        "anxiety": {
+          "valence": "support",
+          "patterns": ["anxious", "anxiety", "nervous", "panicking", "panic", "freaking out", "spiraling", "spiralling", "worried sick", "on edge", "can't calm down", "cannot calm down"],
+          "responseInstruction": "Treat anxiety as a vulnerable, potentially intense state. Be steady and specific; do not use forced cheerfulness, generic breathing scripts, or certainty about what will happen.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["That sounds really keyed-up. What’s the thought that keeps coming back?", "I can see why that would put you on edge. Is there one part of it that feels most urgent?", "That spiral is exhausting. Do you want to tell me what set it off?", "You don’t have to untangle all of it at once. What’s the immediate thing you’re worried about?"]
+        },
+        "embarrassment": {
+          "valence": "support",
+          "patterns": ["embarrassed", "so embarrassing", "that was embarrassing", "mortified", "humiliated", "made a fool of myself", "looked stupid", "feel stupid", "cringe", "cringey", "awkward moment"],
+          "responseInstruction": "Treat embarrassment gently and without minimizing it. Avoid saying it is nothing; people often need room to describe what happened before they can laugh at it.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["Oof, I can see why that would stick with you. What happened?", "That kind of moment can replay in your head for hours. Was it as public as it felt?", "Yeah, that’s an awful feeling. Do you want to talk through it?", "I get why you’d feel exposed after that. What did the other person do?"]
+        },
+        "grief": {
+          "valence": "support",
+          "patterns": ["grieving", "grief", "lost my mom", "lost my dad", "lost my parent", "lost someone", "passed away", "died", "funeral", "mourning", "bereaved", "miss them so much"],
+          "responseInstruction": "Treat grief with care and restraint. Do not rush toward silver linings, fixes, or reassurance. Make space for the loss and invite only one gentle continuation.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["I’m really sorry. Losing someone can make everything feel different for a while. Who are you missing?", "That’s a heavy thing to be carrying. Do you want to tell me a little about them?", "I’m sorry you’re going through that. What’s been the hardest part lately?", "Grief has a way of showing up at unexpected times. How have you been getting through the days?"]
+        },
+        "anger": {
+          "valence": "discomfort",
+          "patterns": ["angry", "mad", "furious", "pissed", "so annoyed", "rage", "raging", "irritated", "fed up", "makes me so mad", "boiling"],
+          "responseInstruction": "Treat anger as a meaningful reaction, not a celebration or a cue to intensify. Acknowledge the trigger before suggesting any action.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["Yeah, I can see why that would make you mad. What happened?", "That sounds infuriating. Was it one thing or has it been building for a while?", "I’d be irritated too if that’s how it went down. What did they say?", "That kind of thing can really get under your skin. What part bothered you most?"]
+        },
+        "disappointment": {
+          "valence": "support",
+          "patterns": ["disappointed", "let down", "didn't work out", "did not work out", "fell through", "didn't get it", "did not get it", "rejected from", "missed out", "was hoping"],
+          "responseInstruction": "Treat disappointment as a real loss of expectation. Do not jump immediately into lessons, optimism, or alternatives.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["That’s disappointing, especially if you were counting on it. What happened?", "I’m sorry—that kind of letdown can hit harder than people expect. How close did it get?", "Yeah, that stings. Was it something you’d been looking forward to for a while?", "That’s rough. Do you want to vent about it or think through what comes next?"]
+        },
+        "indecision": {
+          "valence": "need",
+          "patterns": ["can't decide", "cannot decide", "torn between", "on the fence", "don't know which", "do not know which", "not sure what to choose", "can't choose", "cannot choose", "too many options"],
+          "responseInstruction": "Treat indecision as a decision process, not a deficiency. Ask one question that reveals the tradeoff instead of dumping a comparison table on the user.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["That usually means both options are giving you something you want. What’s the biggest difference between them for you?", "Yeah, it’s hard to choose when neither option is obviously wrong. What would you regret more?", "Let’s narrow it down one piece at a time—what matters most here?", "What’s making the decision feel stuck: cost, risk, or just not knowing what you want?"]
+        },
+        "rejection": {
+          "valence": "support",
+          "patterns": ["rejected", "got turned down", "turned me down", "ghosted", "ignored me", "left on read", "didn't text back", "did not text back", "didn't pick me", "did not pick me"],
+          "responseInstruction": "Treat rejection as personal and potentially painful. Do not tell the user to move on, insist it is for the best, or make claims about the other person’s motives.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["That hurts, especially when you don’t get much of an explanation. What happened?", "I’m sorry—that kind of silence can mess with your head. How long has it been?", "Yeah, being turned down can land hard. Was this someone you cared about a lot?", "That’s rough. Do you want to talk about what they said, or didn’t say?"]
+        },
+        "homesickness": {
+          "valence": "support",
+          "patterns": ["homesick", "miss home", "missing home", "want to go home", "wish i was home", "wish i were home", "miss my family", "miss my friends back home", "far from home"],
+          "responseInstruction": "Treat homesickness as a longing for familiar people or places. Be warm without pretending it can be solved with a simple distraction.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["That homesick feeling can sneak up on you. What do you miss most about home?", "I get why that would feel heavy. How far away are you from the people you miss?", "Sometimes it’s the little familiar things that get you. What are you craving from home right now?", "That sounds lonely in a very specific way. Have you been away long?"]
+        },
+        "pride": {
+          "valence": "pleasant",
+          "patterns": ["proud of myself", "proud of me", "i did it", "i made it", "worked really hard", "finally finished", "nailed it", "pulled it off", "accomplished"],
+          "responseInstruction": "Treat pride as earned good news. Be warmly specific and proportionate; ask what made the accomplishment difficult rather than using generic praise.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["You should feel proud of that. What was the hardest part to get through?", "That’s a real win. How long had you been working toward it?", "Nice—that kind of follow-through matters. What finally clicked?", "That sounds earned, not accidental. What did it take to pull off?"]
+        },
+        "anticipation": {
+          "valence": "pleasant",
+          "patterns": ["can't wait", "cannot wait", "looking forward to", "so excited for", "excited about", "counting down", "tomorrow is the day", "coming up soon", "really looking forward"],
+          "responseInstruction": "Treat anticipation as lively but not over-the-top. Match the user’s energy and ask about the specific event only if it feels natural.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["That sounds like it’s giving you something fun to look forward to. What are you most excited about?", "Nice—what’s the thing you’ve been counting down to?", "I can see why you’d be excited. Is it happening soon?", "That kind of anticipation makes the wait feel extra long. What’s the plan?"]
+        },
+        "relationship_conflict": {
+          "valence": "support",
+          "patterns": ["we had a fight", "we got in a fight", "argued with", "argument with", "fighting with my", "relationship is hard", "partner is mad", "boyfriend is mad", "girlfriend is mad", "we're not talking", "we are not talking"],
+          "responseInstruction": "Treat relationship conflict as emotionally loaded and incomplete. Do not take sides from one sentence or prescribe a breakup, apology, or confrontation.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["That sounds tense. What was the fight really about underneath the surface?", "I’m sorry—that kind of distance can feel awful. Have you two talked since?", "Arguments with someone close can throw off your whole day. What happened?", "That’s hard. Are you wanting to fix it, or are you still trying to make sense of it?"]
+        },
+        "financial_pressure": {
+          "valence": "discomfort",
+          "patterns": ["can't afford", "cannot afford", "broke", "no money", "rent is due", "behind on bills", "debt", "financially stressed", "money is tight", "short on cash", "overdraft"],
+          "responseInstruction": "Treat financial pressure without judgment or cheerfulness. Do not make promises about money; ask one practical question before offering advice.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["That kind of money stress sits in the background of everything. What’s the most immediate bill or deadline?", "I’m sorry—you shouldn’t have to carry that alone. Is this a short-term squeeze or something that’s been building?", "That sounds stressful. What’s the part that needs attention first?", "Yeah, money being tight can make every decision feel heavier. What’s the biggest pressure point right now?"]
+        },
+        "workload": {
+          "valence": "need",
+          "patterns": ["too much work", "buried in work", "swamped", "drowning in work", "too many deadlines", "so much to do", "can't keep up", "cannot keep up", "my workload", "backlog"],
+          "responseInstruction": "Treat workload as pressure and possible overload. Do not praise overwork or immediately prescribe productivity tactics; first identify the immediate pressure.",
+          "allowFollowUp": true,
+          "recoveryResponses": ["That sounds like more than one person’s share. What’s the deadline that’s stressing you most?", "Being swamped makes it hard to even choose where to start. What has to happen today?", "That’s a lot to have on your plate. Is there one task that’s blocking everything else?", "Yeah, that kind of backlog can feel endless. What’s the most urgent piece?"]
+        }
+      },
+      "incongruentPositiveResponsePatterns": ["glad to hear", "happy to hear", "good to hear", "that's great", "that is great", "congratulations", "love that", "exciting"],
+      "prematureDirectivePatterns": ["you should", "you need to", "try to", "make sure", "just"]
+    },
+    "depth": {
+      "algorithmVersion": "adaptive-depth-1.0",
+      "thresholds": {
+        "explained": 0.4,
+        "deep": 0.75
+      },
+      "taskBaseScores": {
+        "social": 0,
+        "acknowledgement": 0.05,
+        "simple_fact": 0.12,
+        "identity": 0.12,
+        "humor": 0.12,
+        "emotional_support": 0.24,
+        "personal_sharing": 0.2,
+        "definition": 0.44,
+        "explanation": 0.5,
+        "recommendation": 0.5,
+        "comparison": 0.56,
+        "procedure": 0.52,
+        "troubleshooting": 0.58,
+        "analysis": 0.64,
+        "clarification": 0.05,
+        "general": 0.32
+      },
+      "taskPrecedence": [
+        "troubleshooting",
+        "comparison",
+        "procedure",
+        "recommendation",
+        "analysis",
+        "simple_fact",
+        "explanation",
+        "definition",
+        "personal_sharing"
+      ],
+      "minimalTaskKinds": [
+        "simple_fact",
+        "identity"
+      ],
+      "taskPatterns": {
+        "social": [],
+        "acknowledgement": [],
+        "simple_fact": [
+          "capital of",
+          "who won",
+          "what year",
+          "how many",
+          "where is",
+          "when did",
+          "what time",
+          "what date"
+        ],
+        "identity": [],
+        "humor": [],
+        "emotional_support": [],
+        "personal_sharing": [
+          "i've been thinking",
+          "i have been thinking",
+          "i'm thinking about",
+          "i am thinking about",
+          "i was thinking about",
+          "i keep thinking",
+          "i feel like"
+        ],
+        "definition": [
+          "what is ",
+          "what are ",
+          "what does ",
+          "define ",
+          "meaning of",
+          "mean?"
+        ],
+        "explanation": [
+          "why ",
+          "why does",
+          "why do",
+          "how does",
+          "how do",
+          "how come",
+          "explain ",
+          "help me understand",
+          "what causes",
+          "tell me about"
+        ],
+        "recommendation": [
+          "should i",
+          "what should",
+          "recommend",
+          "places to eat",
+          "where should i eat",
+          "where to eat",
+          "restaurant",
+          "best way",
+          "which should",
+          "what would you choose",
+          "advice"
+        ],
+        "comparison": [
+          "compare ",
+          "difference between",
+          "versus",
+          " vs ",
+          "pros and cons",
+          "better than",
+          " or "
+        ],
+        "procedure": [
+          "how to ",
+          "how can i",
+          "steps to",
+          "walk me through",
+          "step by step",
+          "step-by-step"
+        ],
+        "troubleshooting": [
+          "not working",
+          "doesn't work",
+          "does not work",
+          "broken",
+          "error",
+          "fails",
+          "failure",
+          "debug",
+          "fix ",
+          "crash",
+          "502",
+          "no sites load",
+          "no internet",
+          "connected but",
+          "won't load",
+          "will not load"
+        ],
+        "analysis": [
+          "analyze",
+          "evaluate",
+          "assess",
+          "tradeoff",
+          "implications",
+          "risks",
+          "root cause"
+        ],
+        "clarification": [],
+        "general": []
+      },
+      "coverageByTask": {
+        "social": [
+          "natural_response"
+        ],
+        "acknowledgement": [
+          "natural_response"
+        ],
+        "simple_fact": [
+          "direct_answer",
+          "currency_check"
+        ],
+        "identity": [
+          "direct_answer"
+        ],
+        "humor": [
+          "natural_response"
+        ],
+        "emotional_support": [
+          "specific_acknowledgement",
+          "natural_response"
+        ],
+        "personal_sharing": [
+          "specific_acknowledgement",
+          "natural_response"
+        ],
+        "definition": [
+          "direct_answer",
+          "definition",
+          "concrete_example"
+        ],
+        "explanation": [
+          "direct_answer",
+          "mechanism_or_reason",
+          "concrete_example"
+        ],
+        "recommendation": [
+          "recommendation",
+          "rationale",
+          "tradeoff"
+        ],
+        "comparison": [
+          "direct_answer",
+          "comparison_axes",
+          "tradeoff"
+        ],
+        "procedure": [
+          "ordered_steps",
+          "mechanism_or_reason",
+          "important_caveat"
+        ],
+        "troubleshooting": [
+          "likely_cause",
+          "ordered_checks",
+          "decision_branch"
+        ],
+        "analysis": [
+          "direct_answer",
+          "mechanism_or_reason",
+          "tradeoff",
+          "important_caveat"
+        ],
+        "clarification": [
+          "natural_response"
+        ],
+        "general": [
+          "direct_answer",
+          "essential_context"
+        ]
+      },
+      "coverageInstructions": {
+        "natural_response": "Give the natural next response and stop when the conversational point is complete.",
+        "direct_answer": "State the bottom line directly.",
+        "currency_check": "If this fact can change over time, use the current-date context and the newest name or status you know; state uncertainty briefly if needed.",
+        "essential_context": "Add the context needed to understand why the answer matters.",
+        "definition": "Define the idea in plain language.",
+        "mechanism_or_reason": "Explain the key mechanism or reason, not just the conclusion.",
+        "concrete_example": "Use one concrete example or practical implication when it improves understanding.",
+        "recommendation": "Give a clear, calibrated recommendation rather than issuing a universal instruction.",
+        "rationale": "Explain the judgment or evidence behind the recommendation.",
+        "first_action": "Give an immediately usable first action.",
+        "ordered_steps": "Give the essential sequence in the order it actually happens.",
+        "comparison_axes": "Compare the few differences that actually affect the decision.",
+        "tradeoff": "Name the meaningful tradeoff or decision rule.",
+        "likely_cause": "State the most likely cause or narrow the problem before listing checks.",
+        "ordered_checks": "Give diagnostic checks in a useful order.",
+        "decision_branch": "Explain what to do next based on the likely result.",
+        "important_caveat": "Include only a caveat that could materially change the answer. For versioned or time-sensitive technical topics, name the modern behavior and distinguish legacy behavior when relevant.",
+        "specific_acknowledgement": "Respond to the specific thing the user shared rather than using generic sympathy."
+      },
+      "deepAdditionalCoverage": [
+        "important_caveat"
+      ],
+      "adjustments": {
+        "multiPart": 0.2,
+        "confusion": 0.12,
+        "substantialContext": 0.1,
+        "contextualFollowUp": -0.15,
+        "exampleRequested": 0.08,
+        "explicitDetailFloor": 0.76,
+        "explicitBrevityCeiling": 0.25
+      },
+      "confusionThreshold": 0.4,
+      "substantialContextWordThreshold": 24,
+      "contextualFollowUpMaxWords": 7,
+      "contextualFollowUpPatterns": [
+        "why",
+        "why is that",
+        "how so",
+        "what about",
+        "and what about",
+        "tell me more",
+        "can you explain that"
+      ],
+      "multiPartPatterns": [
+        " and also ",
+        " as well as ",
+        "both ",
+        "two separate things"
+      ],
+      "exampleRequestPatterns": [
+        "for example",
+        "give me an example",
+        "with an example",
+        "show me an example"
+      ]
+    },
+    "advice": {
+      "algorithmVersion": "advice-readiness-1.1",
+      "recentUserTurnLimit": 4,
+      "detection": {
+        "explicitRequestPatterns": [
+          "what should i",
+          "should i",
+          "what do you recommend",
+          "what would you recommend",
+        "can you recommend",
+        "could you recommend",
+        "can you suggest",
+        "could you suggest",
+        "can you make",
+        "could you make",
+        "can you give me",
+        "recommend ",
+        "places to eat",
+        "where should i eat",
+        "where to eat",
+        "restaurant",
+        "suggest ",
+        "what's a good",
+        "what is a good",
+        "give me advice",
+          "advice on",
+          "plan for me",
+          "routine for me",
+          "need advice",
+          "help me choose",
+          "help me decide",
+          "which should i",
+          "what would you do"
+        ],
+        "implicitRequestPatterns": [
+          "best way to",
+          "how can i",
+          "how do i",
+        "make me a plan",
+        "give me a plan",
+        "build me a",
+        "design me a",
+        "put together a plan",
+          "help me ",
+          "help with ",
+          "i need to ",
+          "i want to "
+        ],
+        "personalizationPatterns": [
+          "for me",
+          "my situation",
+          "my goals",
+          "my goal",
+          "should i",
+          "i want to",
+          "i need to"
+        ],
+        "continuationPatterns": [
+          "what about",
+          "how about",
+          "would that",
+          "does that change",
+          "instead",
+          "and if",
+          "then should",
+          "which one"
+        ],
+        "continuationAnswerPatterns": [
+          "i want ",
+          "my goal",
+          "i'm a ",
+          "i am a ",
+          "i can ",
+          "i have ",
+          "i prefer ",
+          "my budget",
+          "no injuries",
+          "days a week",
+          "per week",
+          "what about",
+          "how about",
+          "instead"
+        ],
+        "maxContinuationWords": 60,
+        "minimumRequestConfidence": 0.7,
+        "confidence": {
+          "explicit": 0.98,
+          "implicit": 0.82,
+          "continued": 0.86
+        }
+      },
+      "urgency": {
+        "emotionThreshold": 0.72,
+        "patterns": [
+          "urgent",
+          "right now",
+          "immediately",
+          "asap",
+          "emergency",
+          "need to act now",
+          "need to act right now"
+        ]
+      },
+      "domains": {
+        "precedence": [
+          "nutrition",
+          "fitness",
+          "career",
+          "product_choice",
+          "technical",
+          "general"
+        ],
+        "patterns": {
+          "fitness": [
+            "exercise",
+            "exercises",
+            "fitness",
+            "workout",
+            "gym",
+            "lifting",
+            "training",
+            "strength training",
+            "cardio",
+            "run",
+            "running",
+            "muscle",
+            "weight loss",
+        "dumbbell",
+        "dumbbells",
+        "barbell",
+        "barbells",
+            "squat",
+            "bench press",
+            "training plan"
+          ],
+          "nutrition": [
+            "nutrition",
+            "diet",
+            "calorie",
+            "protein",
+            "eating",
+            "food",
+            "meal",
+            "macros",
+            "meal plan",
+            "dietary",
+            "supplement",
+            "vitamin"
+          ],
+          "career": [
+            "career",
+            "job",
+            "resume",
+            "interview",
+            "promotion",
+            "salary",
+            "job offer",
+            "quit my job",
+            "leave my job",
+            "manager",
+            "coworker",
+            "workplace",
+            "profession"
+          ],
+          "product_choice": [
+            "buy",
+            "purchase",
+            "laptop",
+            "phone",
+            "headphones",
+            "camera",
+            "product",
+            "brand",
+            "model"
+          ],
+          "technical": [
+            "code",
+            "programming",
+            "bug",
+            "error",
+            "stack trace",
+            "database",
+            "api",
+            "backend",
+            "frontend",
+            "tech stack",
+            "framework",
+            "deploy",
+            "server",
+            "dns",
+            "software",
+            "library"
+          ],
+          "general": []
+        }
+      },
+      "context": {
+        "dimensionPatterns": {
+          "goal": [
+            "my goal",
+            "i want ",
+            "trying to",
+            "looking to",
+            "training for",
+            "how do i",
+            "how can i",
+            "need to",
+            "so i can",
+        "build general strength",
+        "build strength",
+        "get stronger",
+        "build muscle",
+        "lose weight",
+            "gain muscle"
+          ],
+          "current_state": [
+        "currently",
+        "right now",
+        "i currently do",
+        "i usually do",
+        "i train ",
+        "i work out",
+        "i exercise",
+        "i've been ",
+        "i have been ",
+        "my routine",
+        "usually ",
+        "i'm a ",
+            "i am a ",
+            "i have ",
+            "beginner",
+            "intermediate",
+            "advanced",
+            "healthy",
+            "years old",
+            "experience level"
+          ],
+          "constraints": [
+            "can't ",
+            "cannot ",
+            "only ",
+            "limited",
+            "without ",
+            "budget",
+            "under ",
+            "deadline",
+            "allergy",
+            "allergies",
+            "allergic",
+            "vegetarian",
+            "vegan",
+            "gluten",
+            "lactose",
+            "knee",
+            "shoulder",
+            "injury",
+            "injuries",
+            "days a week",
+            "per week"
+          ],
+          "preferences": [
+            "i prefer ",
+            "i like ",
+            "i don't like ",
+            "i do not like ",
+            "i'd rather ",
+            "i would rather ",
+            "favorite",
+            "comfortable with",
+            "want to avoid",
+            "vegetarian",
+            "vegan"
+          ],
+          "resources": [
+            "i have ",
+        "i can access",
+        "access to",
+        "at home",
+        "time available",
+        "minutes",
+        "hours",
+            "available equipment",
+        "dumbbell",
+        "dumbbells",
+        "barbell",
+        "barbells",
+            "bench",
+            "gym",
+            "equipment",
+            "tools",
+            "team",
+            "budget of"
+          ]
+        },
+        "weights": {
+          "goal": 0.24,
+          "current_state": 0.22,
+          "constraints": 0.22,
+          "preferences": 0.16,
+          "resources": 0.16
+        },
+        "readinessThresholdByDomain": {
+          "fitness": 0.58,
+          "nutrition": 0.58,
+          "career": 0.44,
+          "product_choice": 0.34,
+          "technical": 0.42,
+          "general": 0
+        },
+        "minimumDimensionCountByDomain": {
+          "fitness": 3,
+          "nutrition": 3,
+          "career": 2,
+          "product_choice": 2,
+          "technical": 2,
+          "general": 0
+        },
+        "clarificationPriorityByDomain": {
+          "fitness": [
+            "goal",
+            "current_state",
+            "constraints",
+            "resources",
+            "preferences"
+          ],
+          "nutrition": [
+            "goal",
+            "current_state",
+            "constraints",
+            "preferences",
+            "resources"
+          ],
+          "career": [
+            "goal",
+            "current_state",
+            "constraints",
+            "preferences",
+            "resources"
+          ],
+          "product_choice": [
+            "constraints",
+            "preferences",
+            "goal",
+            "resources",
+            "current_state"
+          ],
+          "technical": [
+            "current_state",
+            "goal",
+            "constraints",
+            "resources",
+            "preferences"
+          ],
+          "general": [
+            "goal",
+            "constraints",
+            "preferences",
+            "current_state",
+            "resources"
+          ]
+        },
+        "maxClarificationDimensions": 1
+      },
+      "clarificationInstructions": {
+        "goal": "Ask what outcome the user is trying to reach.",
+        "current_state": "Ask for the current situation or experience level that changes the recommendation.",
+        "constraints": "Ask about limits, risks, deadlines, budget, or other constraints that materially change the advice.",
+      "preferences": "Ask which preferences or tradeoffs matter most.",
+      "resources": "Ask what time, equipment, money, tools, or support are available."
+    },
+    "clarificationQuestionPatterns": {
+      "goal": [
+        "goal",
+        "aiming for",
+        "trying to achieve",
+        "want to achieve",
+        "outcome"
+      ],
+      "current_state": [
+        "current",
+        "currently",
+        "experience",
+        "beginner",
+        "routine",
+        "already do",
+        "doing now"
+      ],
+      "constraints": [
+        "injury",
+        "injuries",
+        "pain",
+        "limitation",
+        "limitations",
+        "constraint",
+        "constraints",
+        "medical"
+      ],
+      "preferences": [
+        "prefer",
+        "enjoy",
+        "like",
+        "avoid",
+        "tradeoff"
+      ],
+      "resources": [
+        "equipment",
+        "gym",
+        "home",
+        "time",
+        "schedule",
+        "days",
+        "available",
+        "budget",
+        "tools"
+      ]
+    },
+    "clarificationFallbacks": {
+        "fitness": "What's your main goal with exercise right now?",
+        "nutrition": "What are you mainly trying to change about how you eat?",
+        "career": "What's the main outcome you want from this?",
+        "product_choice": "What's the one thing this needs to do well for you?",
+        "technical": "What happens when you try it now?",
+        "general": "What's the part of this that matters most to you?"
+      }
+    }
+  },
+  "emotion": {
+    "baselines": {
+      "frustration": 0.03,
+      "excitement": 0.02,
+      "confusion": 0.04,
+      "curiosity": 0.08,
+      "sadness": 0.015,
+      "urgency": 0.02,
+      "confidence": 0.25,
+      "uncertainty": 0.1
+    },
+    "lexicalEvidenceWeight": 0.42,
+    "explicitEvidenceWeight": 0.7,
+    "punctuationEvidenceCap": 0.1,
+    "surfaceSignalProbabilityCap": 0.35,
+    "priorTurnBlend": 0.12,
+    "dominantThreshold": 0.45,
+    "maxProbability": 0.97,
+    "minProbability": 0.01,
+    "lexicons": {
+      "frustration": [
+        "frustrated",
+        "annoyed",
+        "this is broken",
+        "it's broken",
+        "it is broken",
+        "my code is broken",
+        "doesn't work",
+        "still broken",
+        "still fails",
+        "again",
+        "nothing works",
+        "ridiculous",
+        "fed up",
+        "hate this"
+      ],
+      "excitement": [
+        "excited",
+        "amazing",
+        "finally",
+        "got the job",
+        "great news",
+        "can't wait",
+        "so happy",
+        "we did it"
+      ],
+      "confusion": [
+        "confused",
+        "don't understand",
+        "doesn't make sense",
+        "what does that mean",
+        "lost",
+        "i don't get",
+        "unclear"
+      ],
+      "curiosity": [
+        "curious",
+        "wondering",
+        "why",
+        "how",
+        "what if",
+        "tell me more",
+        "could it"
+      ],
+      "sadness": [
+        "sad",
+        "rough day",
+        "bad day",
+        "terrible day",
+        "awful day",
+        "feeling down",
+        "died",
+        "grief",
+        "heartbroken",
+        "hopeless",
+        "miss them",
+        "lost my",
+        "devastated"
+      ],
+      "urgency": [
+        "urgent",
+        "asap",
+        "right now",
+        "immediately",
+        "deadline",
+        "in five minutes",
+        "in 5 minutes",
+        "emergency"
+      ],
+      "confidence": [
+        "definitely",
+        "certain",
+        "i know",
+        "clearly",
+        "without a doubt",
+        "i'm sure",
+        "i am sure"
+      ],
+      "uncertainty": [
+        "maybe",
+        "not sure",
+        "i think",
+        "probably",
+        "might",
+        "could be",
+        "unsure",
+        "i guess"
+      ]
+    },
+    "negationPrefixes": [
+      "not",
+      "never",
+      "isn't",
+      "is not",
+      "don't",
+      "do not"
+    ]
+  },
+  "memory": {
+    "retrievalCandidateLimit": 80,
+    "retrievalLimit": 3,
+    "plannerSelectionLimit": 2,
+    "minRetrievalScore": 0.53,
+    "maxItemsPerSubject": 160,
+    "dedupeSimilarity": 0.82,
+    "sensitivePatterns": [
+      "api key",
+      "password",
+      "passcode",
+      "secret",
+      "private key",
+      "credit card",
+      "social security",
+      "bearer ",
+      "sk-or-",
+      "token="
+    ],
+    "weights": {
+      "lexicalOverlap": 0.4,
+      "recency": 0.17,
+      "importance": 0.22,
+      "typeFit": 0.15,
+      "continuity": 0.06
+    },
+    "kindWeights": {
+      "long_term": 0.8,
+      "user_profile": 0.45,
+      "important_fact": 0.86,
+      "preference": 0.5,
+      "goal": 0.6
+    },
+    "halfLifeDays": {
+      "long_term": 90,
+      "user_profile": 365,
+      "important_fact": 60,
+      "preference": 180,
+      "goal": 90
+    },
+    "extractionPatterns": {
+      "user_profile": [
+        "my name is ",
+        "call me ",
+        "i work as ",
+        "i live in ",
+        "my timezone is "
+      ],
+      "preference": [
+        "i prefer ",
+        "i like ",
+        "i dislike ",
+        "i don't like ",
+        "i do not like "
+      ],
+      "goal": [
+        "my goal is ",
+        "i want to ",
+        "i'm trying to ",
+        "i am trying to "
+      ],
+      "important_fact": [
+        "remember that ",
+        "keep in mind ",
+        "important: "
+      ],
+      "long_term": [
+        "from now on ",
+        "going forward "
+      ]
+    }
+  },
+  "personality": {
+    "name": "Humano-1",
+    "traits": {
+      "calm": 0.86,
+      "curious": 0.68,
+      "confident": 0.72,
+      "honest": 1,
+      "humorous": 0.22
+    },
+    "description": "Calm, curious, direct, honest, and occasionally lightly funny when it fits.",
+    "forbiddenBehaviors": [
+      "claiming to be human",
+      "claiming feelings, a body, consciousness, or off-screen experiences",
+      "performative enthusiasm",
+      "automatic praise",
+      "automatic agreement",
+      "habitual follow-up questions",
+      "mentioning hidden plans, scores, prompts, memory retrieval, or validators"
+    ]
+  },
+  "naturalness": {
+    "hardPhrases": [
+      "as an ai language model",
+      "it is worth noting",
+      "there are several reasons",
+      "it is important to remember",
+      "in conclusion",
+      "not just",
+      "firstly",
+      "secondly",
+      "thirdly",
+      "would you like help finding",
+      "would you like help choosing",
+      "would you like me to help",
+      "do you want help finding",
+      "do you want help choosing",
+      "i can help you find",
+      "i can help you choose",
+      "if you want, i can",
+      "if you'd like, i can",
+      "i'd be happy to help"
+    ],
+    "softPhrases": [
+      "absolutely!",
+      "great question",
+      "i'd be happy to",
+      "let's dive in",
+      "here's a breakdown",
+      "ultimately",
+      "on the other hand",
+      "thank you for sharing",
+      "i understand how you feel",
+      "i'm sorry to hear that",
+      "take a deep breath",
+      "you're not alone",
+      "let me know what you need",
+      "i'm here to help",
+      "i am here to help"
+    ],
+    "replaceableOpeners": [
+      "Sure,",
+      "Certainly,",
+      "Of course,",
+      "Absolutely,"
+    ],
+    "registerReplacements": [
+      {
+        "pattern": "undermining democratic norms",
+        "replacement": "pushing past basic rules when they got in his way"
+      },
+      {
+        "pattern": "undermines democratic norms",
+        "replacement": "pushes past basic rules when they get in his way"
+      },
+      {
+        "pattern": "democratic norms",
+        "replacement": "basic democratic rules"
+      },
+      {
+        "pattern": "eroded trust in institutions",
+        "replacement": "made people trust the government even less"
+      },
+      {
+        "pattern": "erodes trust in institutions",
+        "replacement": "makes people trust the government even less"
+      },
+      {
+        "pattern": "institutional trust",
+        "replacement": "trust in the system"
+      },
+      {
+        "pattern": "increased political polarization",
+        "replacement": "made people hate the other side more"
+      },
+      {
+        "pattern": "fueled political polarization",
+        "replacement": "made people hate the other side more"
+      },
+      {
+        "pattern": "political polarization",
+        "replacement": "people hating the other side more"
+      },
+      {
+        "pattern": "long-term stability",
+        "replacement": "keeping things steady"
+      },
+      {
+        "pattern": "national unity",
+        "replacement": "getting people on the same page"
+      },
+      {
+        "pattern": "the nation's challenges",
+        "replacement": "the country's immediate problems"
+      },
+      {
+        "pattern": "the nation’s challenges",
+        "replacement": "the country’s immediate problems"
+      },
+      {
+        "pattern": "broader implications",
+        "replacement": "what that leads to"
+      },
+      {
+        "pattern": "governance",
+        "replacement": "how the country is run"
+      },
+      {
+        "pattern": "more aligned with",
+        "replacement": "closer to"
+      },
+      {
+        "pattern": "moving forward right now",
+        "replacement": "getting things done right now"
+      },
+      {
+        "pattern": "leadership style",
+        "replacement": "way of leading"
+      },
+      {
+        "pattern": "systemic failure",
+        "replacement": "failure built into the system"
+      }
+    ],
+    "trailingOfferPatterns": [
+      "let me know if you want",
+      "let me know if you'd like",
+      "let me know if you need",
+      "let me know how i can help",
+      "feel free to ask",
+      "i can help with that too",
+      "would you like me to",
+      "i'm here to help",
+      "i am here to help",
+      "here to help",
+      "i'll do my best to help",
+      "i will do my best to help",
+      "how can i assist",
+      "how can i help",
+      "is there anything else",
+      "what do you think",
+      "what's your take",
+      "what is your take",
+      "it's a toss-up",
+      "it’s a toss-up",
+      "it is a toss-up",
+      "it's a tough call",
+      "it’s a tough call",
+      "it is a tough call",
+      "it depends",
+      "depends on"
+    ],
+    "serviceOfferPatterns": [
+      "would you like help finding",
+      "would you like help choosing",
+      "would you like me to help",
+      "would you like me to find",
+      "would you like me to choose",
+      "do you want help finding",
+      "do you want help choosing",
+      "do you want me to find",
+      "do you want me to choose",
+      "i can help you find",
+      "i can help you choose",
+      "i can find some for you",
+      "i can put together a list",
+      "i can help",
+      "if you want, i can",
+      "if you'd like, i can",
+      "if you would like, i can",
+      "i'd be happy to help",
+      "i would be happy to help",
+      "happy to help with",
+      "feel free to ask me"
+    ],
+    "stripReasoningTags": true,
+    "maxRepeatedPunctuation": 1,
+    "paragraphBreakAfterSentences": 4,
+    "fallbackResponse": "I hit a snag answering that. Try me once more.",
+    "identityFallbackResponse": "I'm an AI, not a person.",
+    "socialRecoveryResponses": [
+      "Doing pretty well—how about you?",
+      "Pretty good over here. How are you?",
+      "Going well, thanks. How about you?",
+      "All good here—what's up with you?"
+    ]
+  },
+  "adviceStyle": {
+    "algorithmVersion": "advice-style-1.1",
+    "enabled": true,
+    "recommendation": {
+      "enabled": true,
+      "maxSentences": 2,
+      "changeTag": "trimmed_recommendation_directory"
+    },
+    "rules": [
+      {
+        "id": "start_with",
+        "pattern": "(^[ \\t]*(?:[-*]\\s+)?|[.!?][ \\t]+|(?:\\r?\\n)+[ \\t]*(?:[-*]\\s+)?)Start with\\s+([^.!?\\r\\n]+)",
+        "flags": "giu",
+        "replacement": "$1A practical starting point would be $2",
+        "changeTag": "softened_start_with"
+      },
+      {
+        "id": "do_numeric_range",
+        "pattern": "(^[ \\t]*(?:[-*]\\s+)?|[.!?][ \\t]+|(?:\\r?\\n)+[ \\t]*(?:[-*]\\s+)?)Do\\s+((?:(?:about|roughly|around)\\s+)?(?:\\d|one\\b|two\\b|three\\b|four\\b|five\\b|six\\b|seven\\b|eight\\b|nine\\b|ten\\b)[^.!?\\r\\n]*)",
+        "flags": "giu",
+        "replacement": "$1A reasonable starting range would be $2",
+        "changeTag": "softened_do_range"
+      },
+      {
+        "id": "do_general",
+        "pattern": "(^[ \\t]*(?:[-*]\\s+)?|[.!?][ \\t]+|(?:\\r?\\n)+[ \\t]*(?:[-*]\\s+)?)Do\\s+([^.!?\\r\\n]+)",
+        "flags": "giu",
+        "replacement": "$1A reasonable approach would be to do $2",
+        "changeTag": "softened_do"
+      },
+      {
+        "id": "add",
+        "pattern": "(^[ \\t]*(?:[-*]\\s+)?|[.!?][ \\t]+|(?:\\r?\\n)+[ \\t]*(?:[-*]\\s+)?)Add\\s+([^.!?\\r\\n]+)",
+        "flags": "giu",
+        "replacement": "$1It would also make sense to add $2",
+        "changeTag": "softened_add"
+      },
+      {
+        "id": "progress_by",
+        "pattern": "(^[ \\t]*(?:[-*]\\s+)?|[.!?][ \\t]+|(?:\\r?\\n)+[ \\t]*(?:[-*]\\s+)?)Progress by\\s+([^.!?\\r\\n]+)",
+        "flags": "giu",
+        "replacement": "$1Progression could come from $2",
+        "changeTag": "softened_progress"
+      },
+      {
+        "id": "keep",
+        "pattern": "(^[ \\t]*(?:[-*]\\s+)?|[.!?][ \\t]+|(?:\\r?\\n)+[ \\t]*(?:[-*]\\s+)?)Keep\\s+([^.!?\\r\\n]+)",
+        "flags": "giu",
+        "replacement": "$1It would make sense to keep $2",
+        "changeTag": "softened_keep"
+      },
+      {
+        "id": "focus_on",
+        "pattern": "(^[ \\t]*(?:[-*]\\s+)?|[.!?][ \\t]+|(?:\\r?\\n)+[ \\t]*(?:[-*]\\s+)?)Focus on\\s+([^.!?\\r\\n]+)",
+        "flags": "giu",
+        "replacement": "$1I'd keep the focus on $2",
+        "changeTag": "softened_focus_on"
+      },
+      {
+        "id": "aim_for",
+        "pattern": "(^[ \\t]*(?:[-*]\\s+)?|[.!?][ \\t]+|(?:\\r?\\n)+[ \\t]*(?:[-*]\\s+)?)Aim for\\s+([^.!?\\r\\n]+)",
+        "flags": "giu",
+        "replacement": "$1A reasonable target would be $2",
+        "changeTag": "softened_aim_for"
+      },
+      {
+        "id": "use",
+        "pattern": "(^[ \\t]*(?:[-*]\\s+)?|[.!?][ \\t]+|(?:\\r?\\n)+[ \\t]*(?:[-*]\\s+)?)Use\\s+([^.!?\\r\\n]+)",
+        "flags": "giu",
+        "replacement": "$1I'd use $2",
+        "changeTag": "softened_use"
+      },
+      {
+        "id": "try",
+        "pattern": "(^[ \\t]*(?:[-*]\\s+)?|[.!?][ \\t]+|(?:\\r?\\n)+[ \\t]*(?:[-*]\\s+)?)Try\\s+([^.!?\\r\\n]+)",
+        "flags": "giu",
+        "replacement": "$1I'd try $2",
+        "changeTag": "softened_try"
+      },
+      {
+        "id": "make_sure_you",
+        "pattern": "(^[ \\t]*(?:[-*]\\s+)?|[.!?][ \\t]+|(?:\\r?\\n)+[ \\t]*(?:[-*]\\s+)?)Make sure\\s+you\\s+([^.!?\\r\\n]+)",
+        "flags": "giu",
+        "replacement": "$1One important consideration is that you $2",
+        "changeTag": "softened_make_sure"
+      },
+      {
+        "id": "make_sure_to",
+        "pattern": "(^[ \\t]*(?:[-*]\\s+)?|[.!?][ \\t]+|(?:\\r?\\n)+[ \\t]*(?:[-*]\\s+)?)Make sure\\s+to\\s+([^.!?\\r\\n]+)",
+        "flags": "giu",
+        "replacement": "$1One important consideration is to $2",
+        "changeTag": "softened_make_sure"
+      },
+      {
+        "id": "make_sure_that",
+        "pattern": "(^[ \\t]*(?:[-*]\\s+)?|[.!?][ \\t]+|(?:\\r?\\n)+[ \\t]*(?:[-*]\\s+)?)Make sure\\s+that\\s+([^.!?\\r\\n]+)",
+        "flags": "giu",
+        "replacement": "$1One important consideration is that $2",
+        "changeTag": "softened_make_sure"
+      },
+      {
+        "id": "you_should",
+        "pattern": "(^[ \\t]*(?:[-*]\\s+)?|[.!?][ \\t]+|(?:\\r?\\n)+[ \\t]*(?:[-*]\\s+)?)You should\\s+([^.!?\\r\\n]+)",
+        "flags": "giu",
+        "replacement": "$1A sensible approach would be to $2",
+        "changeTag": "softened_you_should"
+      },
+      {
+        "id": "you_need_to",
+        "pattern": "(^[ \\t]*(?:[-*]\\s+)?|[.!?][ \\t]+|(?:\\r?\\n)+[ \\t]*(?:[-*]\\s+)?)You need to\\s+([^.!?\\r\\n]+)",
+        "flags": "giu",
+        "replacement": "$1I'd treat it as important to $2",
+        "changeTag": "softened_you_need_to"
+      }
+    ]
+  },
+  "validator": {
+    "acceptThreshold": 0.8,
+    "reviseThreshold": 0.62,
+    "maxCandidates": 2,
+    "revisionScoreTolerance": 0.08,
+    "sufficiencyImprovementThreshold": 0.15,
+    "adviceImprovementThreshold": 0.2,
+    "hardLengthMultiplier": 1.5,
+    "weights": {
+      "naturalness": 0.14,
+      "lengthFit": 0.07,
+      "answerSufficiency": 0.1,
+      "adviceReadinessFit": 0.1,
+      "consideredOpinionFit": 0.1,
+      "emotionFit": 0.09,
+      "roboticWording": 0.06,
+      "agreementBias": 0.07,
+      "memoryUse": 0.05,
+      "questionQuality": 0.06,
+      "repetition": 0.05,
+      "confidenceCalibration": 0.03,
+      "transparency": 0.03,
+      "conversationalRegisterFit": 0.05
+    },
+    "humanClaimPatterns": [
+      "i am human",
+      "i'm human",
+      "i am a human",
+      "i'm a human",
+      "i am a real person",
+      "i'm a real person",
+      "as a human, i",
+      "when i was a child",
+      "my physical body"
+    ],
+    "blindAgreementPatterns": [
+      "you're absolutely right",
+      "you are absolutely right",
+      "i completely agree",
+      "exactly right",
+      "your plan is perfect"
+    ],
+    "absoluteConfidencePatterns": [
+      "definitely",
+      "without any doubt",
+      "guaranteed",
+      "certainly true",
+      "100%"
+    ],
+    "internalLeakPatterns": [
+      "response plan",
+      "emotion score",
+      "validator score",
+      "hidden prompt",
+      "retrieved memory",
+      "system instruction says"
+    ],
+    "unsolicitedDisclaimerPatterns": [
+      "i'm just code",
+      "i am just code",
+      "i'm just a bunch of code",
+      "i am just a bunch of code",
+      "i'm just a chatbot",
+      "i am just a chatbot",
+      "i'm a chatbot",
+      "i am a chatbot",
+      "just a chatbot",
+      "i don't experience things",
+      "i do not experience things",
+      "i don't have feelings",
+      "i do not have feelings",
+      "as an ai language model",
+      "as an artificial intelligence"
+    ],
+    "questionContentPatterns": [
+      "give me a question",
+      "give me questions",
+      "write a question",
+      "write questions",
+      "list questions",
+      "questions to ask",
+      "question ideas",
+      "ask me",
+      "quiz me",
+      "interview me"
+    ],
+    "followUpQuestionPatterns": [
+      "anything else?",
+      "want me to",
+      "would you like me to",
+      "do you want me to",
+      "should i ",
+      "need the short version?",
+      "what do you think?",
+      "how can i help?",
+      "how can i assist?"
+    ],
+    "empathyMarkers": [
+      "that sounds",
+      "i'm sorry",
+      "i am sorry",
+      "rough",
+      "frustrating",
+      "hard",
+      "painful"
+    ],
+    "adviceOpinionPatterns": [
+      "i'd ",
+      "i’d ",
+      "i would ",
+      "i suggest",
+      "i'd lean",
+      "i’d lean",
+      "i would lean",
+      "my read is",
+      "my recommendation",
+      "probably",
+      "might be",
+      "could be",
+      "a good fit",
+      "a better fit",
+      "a sensible",
+      "a practical",
+      "a reasonable",
+      "how about",
+      "i'd go with",
+      "i would go with"
+    ],
+    "adviceRationalePatterns": [
+      "because",
+      "since",
+      "given ",
+      "which helps",
+      "helps ",
+      "so that",
+      "the reason",
+      "that way",
+      "this makes",
+      "this builds",
+      "that builds",
+      "it builds",
+      "they build",
+      "build ",
+      "builds ",
+      "they help",
+      "which makes",
+      "so you can",
+      "target ",
+      "are great for",
+      "good for",
+      "useful for",
+      "effective for",
+      "building ",
+      "improves ",
+      "supports ",
+      "reduces ",
+      "allows ",
+      "the tradeoff",
+      "depends on",
+      "it's ",
+      "it’s ",
+      "it is "
+    ],
+    "prescriptiveAdvicePatterns": [
+      "you must",
+      "you need to",
+      "you have to",
+      "always ",
+      "never ",
+      "just do",
+      "make sure",
+      "start with",
+      "the best thing is"
+    ],
+    "prematureAdvicePatterns": [
+      "you should",
+      "you need to",
+      "you have to",
+      "start with",
+      "try ",
+      "begin with",
+      "go with",
+      "i recommend",
+      "i'd recommend",
+      "i’d recommend",
+      "i would recommend"
+    ],
+    "minimumAdviceReadinessFit": 0.72,
+    "minimumConsideredOpinionFit": 0.72,
+    "minimumConversationalRegisterFit": 0.72,
+    "multipleClarificationQuestionCredit": 0.5,
+    "adviceReadinessWeights": {
+      "questionCompliance": 0.4,
+      "noPrematureAdvice": 0.2,
+      "focusCoverage": 0.4
+    },
+    "consideredOpinionWeights": {
+      "calibratedOpinion": 0.38,
+      "rationale": 0.42,
+      "nonPrescriptive": 0.2
+    },
+    "minimumSufficiencyScore": 0.72,
+    "sufficiencyWeights": {
+      "words": 0.55,
+      "sentences": 0.25,
+      "coverageCapacity": 0.2
+    },
+    "wordsPerContentUnit": 45
+  },
+  "security": {
+    "requestsPerWindow": 24,
+    "rateLimitWindowMs": 60000,
+    "allowedOrigins": []
+  },
+  "observability": {
+    "enabled": true,
+    "logContent": false,
+    "logLevel": "info"
+  },
+  "training": {
+    "enabled": true,
+    "storeRawContent": false,
+    "redactionMarker": "[REDACTED]",
+    "eventSchemaVersion": "2.0"
+  }
+}
