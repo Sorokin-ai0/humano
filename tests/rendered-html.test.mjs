@@ -33,7 +33,7 @@ test("the production build contains the finished Humano surface", async () => {
       new URL("../app/research-preview/page.tsx", import.meta.url),
       "utf8",
     ),
-    access(new URL("../dist/server/index.js", import.meta.url)),
+    access(new URL("../.next/BUILD_ID", import.meta.url)),
     access(new URL("../public/og.png", import.meta.url)),
     access(new URL("../public/humano-hero.webp", import.meta.url)),
   ]);
