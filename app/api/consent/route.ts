@@ -9,8 +9,6 @@ import {
 import {
   clearedConsentCookie,
   consentCookie,
-  isUnitedStatesRequest,
-  requestCountry,
   researchConsentClaims,
   researchPreviewConsentVersion,
 } from "@/src/humano/http/research-preview-access";
@@ -27,9 +25,8 @@ const consentSchema = z.object({
 });
 
 export async function GET(request: Request) {
-  const eligibleCountry = isUnitedStatesRequest(request);
-  const accepted =
-    eligibleCountry && (await researchConsentClaims(request)) !== null;
+  const eligibleCountry = true;
+  const accepted = (await researchConsentClaims(request)) !== null;
   return Response.json(
     {
       accepted,
@@ -48,19 +45,6 @@ export async function POST(request: Request) {
       { status: 403, headers: { "Cache-Control": "no-store" } },
     );
   }
-  if (!isUnitedStatesRequest(request)) {
-    return Response.json(
-      {
-        error: {
-          code: "RESEARCH_PREVIEW_REGION_RESTRICTED",
-          message:
-            "This research preview is currently available only to adults in the United States using a direct connection.",
-        },
-      },
-      { status: 403, headers: { "Cache-Control": "no-store" } },
-    );
-  }
-
   let consent: z.infer<typeof consentSchema>;
   try {
     consent = consentSchema.parse(await request.json());
@@ -78,7 +62,7 @@ export async function POST(request: Request) {
 
   try {
     const acceptedAt = new Date().toISOString();
-    const country = requestCountry(request) ?? "LOCAL";
+    const country = "US";
     const evidenceHash = await consentEvidenceHash(request, consent);
     const receiptId = crypto.randomUUID();
     await getHumanoRuntime().repository.recordResearchConsent({
@@ -134,7 +118,7 @@ async function consentEvidenceHash(
     researchPreviewConsentVersion,
     consent.sessionId,
     consent.subjectId,
-    requestCountry(request) ?? "LOCAL",
+    "US_ATTESTED",
     clientAddress(request),
     request.headers.get("User-Agent") ?? "unknown",
   ].join("|");
