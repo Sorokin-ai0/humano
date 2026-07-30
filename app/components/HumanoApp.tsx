@@ -73,8 +73,6 @@ export function HumanoApp() {
   const [consentState, setConsentState] =
     useState<ConsentState>("checking");
   const [consentOpen, setConsentOpen] = useState(false);
-  const [consentEligibleCountry, setConsentEligibleCountry] =
-    useState(true);
   const [consentChecks, setConsentChecks] = useState<ConsentChecks>(
     initialConsentChecks,
   );
@@ -157,10 +155,8 @@ export function HumanoApp() {
           .then(async (response) => {
             const body = (await response.json()) as {
               accepted?: boolean;
-              eligibleCountry?: boolean;
             };
             if (!active) return;
-            setConsentEligibleCountry(body.eligibleCountry !== false);
             if (!body.accepted) {
               setConsentState("required");
               return;
@@ -779,138 +775,133 @@ export function HumanoApp() {
                 this browser for this preview.
               </p>
 
-              {!consentEligibleCountry ? (
-                <div className="consent-region-note" role="alert">
-                  This preview is currently limited to people physically in the
-                  United States using a direct connection.
-                </div>
-              ) : null}
-
               <form onSubmit={acceptResearchPreview}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={consentChecks.ageConfirmed}
-                    onChange={(event) =>
-                      updateConsentCheck(
-                        "ageConfirmed",
-                        event.target.checked,
-                      )
-                    }
-                  />
-                  <span>I confirm that I am at least 18 years old.</span>
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={consentChecks.unitedStatesConfirmed}
-                    onChange={(event) =>
-                      updateConsentCheck(
-                        "unitedStatesConfirmed",
-                        event.target.checked,
-                      )
-                    }
-                  />
-                  <span>
-                    I am physically located in and reside in the United States.
-                  </span>
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={consentChecks.directConnectionConfirmed}
-                    onChange={(event) =>
-                      updateConsentCheck(
-                        "directConnectionConfirmed",
-                        event.target.checked,
-                      )
-                    }
-                  />
-                  <span>
-                    I am not using a VPN, proxy, Tor, or another service that
-                    masks my location.
-                  </span>
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={consentChecks.aiRiskAccepted}
-                    onChange={(event) =>
-                      updateConsentCheck(
-                        "aiRiskAccepted",
-                        event.target.checked,
-                      )
-                    }
-                  />
-                  <span>
-                    I understand Humano is AI, may be confidently wrong, and
-                    must not replace professional or emergency help.
-                  </span>
-                </label>
-                <label className="consent-critical">
-                  <input
-                    type="checkbox"
-                    checked={consentChecks.disputeTermsAccepted}
-                    onChange={(event) =>
-                      updateConsentCheck(
-                        "disputeTermsAccepted",
-                        event.target.checked,
-                      )
-                    }
-                  />
-                  <span>
-                    I specifically agree to{" "}
-                    <strong>binding individual arbitration</strong>, the{" "}
-                    <strong>class-action and jury-trial waivers</strong>,
-                    assumption of risk, warranty disclaimers, and limits on
-                    Humano&apos;s liability described in the{" "}
-                    <Link href="/terms#disputes" target="_blank">
-                      Terms
-                    </Link>
-                    .
-                  </span>
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={consentChecks.policiesAccepted}
-                    onChange={(event) =>
-                      updateConsentCheck(
-                        "policiesAccepted",
-                        event.target.checked,
-                      )
-                    }
-                  />
-                  <span>
-                    I agree to the{" "}
-                    <Link href="/terms" target="_blank">
-                      Terms
-                    </Link>
-                    ,{" "}
-                    <Link href="/privacy" target="_blank">
-                      Privacy Policy
-                    </Link>
-                    , and{" "}
-                    <Link href="/research-preview" target="_blank">
-                      Research Preview Policy
-                    </Link>
-                    .
-                  </span>
-                </label>
+                <div className="consent-options">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={consentChecks.ageConfirmed}
+                      onChange={(event) =>
+                        updateConsentCheck(
+                          "ageConfirmed",
+                          event.target.checked,
+                        )
+                      }
+                    />
+                    <span>I confirm that I am at least 18 years old.</span>
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={consentChecks.unitedStatesConfirmed}
+                      onChange={(event) =>
+                        updateConsentCheck(
+                          "unitedStatesConfirmed",
+                          event.target.checked,
+                        )
+                      }
+                    />
+                    <span>
+                      I am physically located in and reside in the United
+                      States.
+                    </span>
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={consentChecks.directConnectionConfirmed}
+                      onChange={(event) =>
+                        updateConsentCheck(
+                          "directConnectionConfirmed",
+                          event.target.checked,
+                        )
+                      }
+                    />
+                    <span>
+                      I am not using a VPN, proxy, Tor, or another service that
+                      masks my location.
+                    </span>
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={consentChecks.aiRiskAccepted}
+                      onChange={(event) =>
+                        updateConsentCheck(
+                          "aiRiskAccepted",
+                          event.target.checked,
+                        )
+                      }
+                    />
+                    <span>
+                      I understand Humano is AI, may be confidently wrong, and
+                      must not replace professional or emergency help.
+                    </span>
+                  </label>
+                  <label className="consent-critical">
+                    <input
+                      type="checkbox"
+                      checked={consentChecks.disputeTermsAccepted}
+                      onChange={(event) =>
+                        updateConsentCheck(
+                          "disputeTermsAccepted",
+                          event.target.checked,
+                        )
+                      }
+                    />
+                    <span>
+                      I specifically agree to{" "}
+                      <strong>binding individual arbitration</strong>, the{" "}
+                      <strong>class-action and jury-trial waivers</strong>,
+                      assumption of risk, warranty disclaimers, and limits on
+                      Humano&apos;s liability described in the{" "}
+                      <Link href="/terms#disputes" target="_blank">
+                        Terms
+                      </Link>
+                      .
+                    </span>
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={consentChecks.policiesAccepted}
+                      onChange={(event) =>
+                        updateConsentCheck(
+                          "policiesAccepted",
+                          event.target.checked,
+                        )
+                      }
+                    />
+                    <span>
+                      I agree to the{" "}
+                      <Link href="/terms" target="_blank">
+                        Terms
+                      </Link>
+                      ,{" "}
+                      <Link href="/privacy" target="_blank">
+                        Privacy Policy
+                      </Link>
+                      , and{" "}
+                      <Link href="/research-preview" target="_blank">
+                        Research Preview Policy
+                      </Link>
+                      .
+                    </span>
+                  </label>
 
-                {consentError ? (
-                  <p className="consent-error" role="alert">
-                    {consentError}
-                  </p>
-                ) : null}
+                  {consentError ? (
+                    <p className="consent-error" role="alert">
+                      {consentError}
+                    </p>
+                  ) : null}
+                </div>
 
                 <button
                   className="consent-submit"
                   type="submit"
                   disabled={
                     !Object.values(consentChecks).every(Boolean) ||
-                    consentState === "saving" ||
-                    !consentEligibleCountry
+                    consentState === "saving"
                   }
                 >
                   {consentState === "saving"
@@ -919,9 +910,8 @@ export function HumanoApp() {
                 </button>
               </form>
               <small className="consent-footnote">
-                Location checks can restrict country access, but VPN detection
-                is based on your truthful attestation during this limited
-                preview.
+                U.S. eligibility and direct-connection access are based on your
+                truthful attestation during this limited preview.
               </small>
             </section>
           </div>
