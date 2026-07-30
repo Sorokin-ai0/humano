@@ -1,4 +1,3 @@
-import { env } from "cloudflare:workers";
 import { loadHumanoConfig } from "../config/load-config";
 import { CharacterTokenEstimator, CryptoIdGenerator, SystemClock } from "../core/runtime";
 import { HumanoConversationEngine } from "../application/humano-conversation-engine";
@@ -6,6 +5,7 @@ import { SlidingWindowRateLimiter } from "../application/sliding-window-rate-lim
 import { OpenRouterProvider } from "../adapters/model/openrouter-provider";
 import { JsonObservabilitySink } from "../adapters/observability/json-observability-sink";
 import { HumanoD1Repository } from "../adapters/persistence/humano-d1-repository";
+import { InMemoryRepository } from "../adapters/persistence/in-memory-repository";
 import { HeuristicEmotionEngine } from "../engines/emotion/heuristic-emotion-engine";
 import { ConfigurableHumanStateEngine } from "../engines/state/configurable-human-state-engine";
 import { AdaptiveConversationalDepthEngine } from "../engines/depth/adaptive-conversational-depth-engine";
@@ -19,16 +19,13 @@ import { ContextWindowManager } from "../engines/prompt/context-window-manager";
 import { HumanoPromptComposer } from "../engines/prompt/humano-prompt-composer";
 import { RuleResponseValidator } from "../engines/validator/rule-response-validator";
 
-interface RuntimeEnvironment {
-  DB?: D1Database;
-  OPENROUTER_API_KEY?: string;
-}
+type RuntimeRepository = HumanoD1Repository | InMemoryRepository;
 
 export interface HumanoRuntime {
   engine: HumanoConversationEngine;
   rateLimiter: SlidingWindowRateLimiter;
   config: ReturnType<typeof loadHumanoConfig>;
-  repository: HumanoD1Repository;
+  repository: RuntimeRepository;
 }
 
 let runtime: HumanoRuntime | undefined;
@@ -38,15 +35,10 @@ export function getHumanoRuntime(): HumanoRuntime {
   if (runtime) return runtime;
 
   const config = loadHumanoConfig();
-  const runtimeEnvironment = env as unknown as RuntimeEnvironment;
-  if (!runtimeEnvironment.DB) {
-    throw new Error("The Humano D1 database binding is unavailable.");
-  }
-  const apiKey =
-    runtimeEnvironment.OPENROUTER_API_KEY ??
-    process.env.OPENROUTER_API_KEY ??
-    "";
-  const repository = new HumanoD1Repository(runtimeEnvironment.DB);
+  const apiKey = process.env.OPENROUTER_API_KEY ?? "";
+  // Vercel has no Cloudflare D1 binding. This adapter keeps the preview fully
+  // runnable without an external database; state is intentionally ephemeral.
+  const repository: RuntimeRepository = new InMemoryRepository();
   const ids = new CryptoIdGenerator();
   const clock = new SystemClock();
   const tokens = new CharacterTokenEstimator(
@@ -96,12 +88,8 @@ export function getHumanoRuntime(): HumanoRuntime {
 }
 
 export function runtimeHealth() {
-  const runtimeEnvironment = env as unknown as RuntimeEnvironment;
   return {
-    databaseConfigured: Boolean(runtimeEnvironment.DB),
-    keyConfigured: Boolean(
-      runtimeEnvironment.OPENROUTER_API_KEY ??
-        process.env.OPENROUTER_API_KEY,
-    ),
+    databaseConfigured: false,
+    keyConfigured: Boolean(process.env.OPENROUTER_API_KEY),
   };
 }

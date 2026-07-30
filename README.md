@@ -39,16 +39,14 @@ RUN_LIVE_MODEL_TESTS=1 npm run test:live
 
 ## Deployment
 
-Humano currently deploys as a Cloudflare Worker and uses a Cloudflare D1
-binding named `DB` for conversation state, memory, feedback, preview consent,
-and training metadata. Configure `OPENROUTER_API_KEY` as a server-side secret;
-never expose it to the browser.
+Humano deploys to Vercel as a Next.js application. Configure
+`OPENROUTER_API_KEY` as a server-side Vercel environment variable; never
+expose it to the browser.
 
-`npm run build` produces the Worker-compatible production bundle used by the
-current runtime. Vercel deployment requires a deliberate adapter for the
-Cloudflare Worker APIs and D1 persistence (for example, Vercel Postgres or
-another supported database); it is not enabled by a placeholder configuration
-that would silently break the application.
+The initial Vercel preview uses in-memory storage for conversations, memory,
+feedback, and preview consent, so that data can disappear after a serverless
+instance restarts. Before a public launch, replace the in-memory adapter with
+a durable Vercel-compatible database adapter.
 
 ## What happens on every turn
 

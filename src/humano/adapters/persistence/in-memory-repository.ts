@@ -14,6 +14,17 @@ import type {
   TrainingEventV2,
 } from "../../domain/types";
 
+interface ResearchConsentReceipt {
+  id: string;
+  sessionId: string;
+  subjectId: string;
+  consentVersion: string;
+  acceptedAt: string;
+  country: string;
+  evidenceHash: string;
+  acceptanceMethod: "affirmative_clickwrap";
+}
+
 /** Deterministic adapter used by tests and non-durable evaluation runs. */
 export class InMemoryRepository
   implements
@@ -26,6 +37,7 @@ export class InMemoryRepository
   readonly memories: StoredMemory[] = [];
   readonly events: TrainingEventV2[] = [];
   readonly feedback: FeedbackRecord[] = [];
+  readonly consentReceipts: ResearchConsentReceipt[] = [];
   private readonly sessions = new Map<SessionId, SubjectId>();
 
   async ensureSession(
@@ -145,5 +157,38 @@ export class InMemoryRepository
     );
     if (index >= 0) this.feedback[index] = feedback;
     else this.feedback.push(feedback);
+  }
+
+  async recordResearchConsent(receipt: ResearchConsentReceipt): Promise<void> {
+    const index = this.consentReceipts.findIndex(
+      (item) =>
+        item.sessionId === receipt.sessionId &&
+        item.consentVersion === receipt.consentVersion,
+    );
+    if (index >= 0) this.consentReceipts[index] = { ...receipt };
+    else this.consentReceipts.push({ ...receipt });
+  }
+
+  async hasResearchConsent(
+    receiptId: string,
+    consentVersion: string,
+  ): Promise<boolean> {
+    return this.consentReceipts.some(
+      (receipt) =>
+        receipt.id === receiptId && receipt.consentVersion === consentVersion,
+    );
+  }
+
+  async hasResearchConsentForSubject(
+    receiptId: string,
+    consentVersion: string,
+    subjectId: SubjectId,
+  ): Promise<boolean> {
+    return this.consentReceipts.some(
+      (receipt) =>
+        receipt.id === receiptId &&
+        receipt.consentVersion === consentVersion &&
+        receipt.subjectId === subjectId,
+    );
   }
 }
