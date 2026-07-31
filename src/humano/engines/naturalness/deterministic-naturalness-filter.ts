@@ -1,6 +1,7 @@
 import type { HumanoConfig } from "../../config/schema";
 import type { ConversationPlan, FilterResult } from "../../domain/types";
 import type { NaturalnessFilter } from "../../ports/contracts";
+import { cleanStockHumanoVoice } from "../../core/humano-voice-policy";
 
 /** Removes hidden reasoning and low-risk boilerplate without changing meaning. */
 export class DeterministicNaturalnessFilter implements NaturalnessFilter {
@@ -9,6 +10,7 @@ export class DeterministicNaturalnessFilter implements NaturalnessFilter {
   async process(
     rawContent: string,
     plan: ConversationPlan,
+    modelVariant: Parameters<NaturalnessFilter["process"]>[2] = "humano-1",
   ): Promise<FilterResult> {
     void plan;
     let content = rawContent.trim();
@@ -31,6 +33,14 @@ export class DeterministicNaturalnessFilter implements NaturalnessFilter {
         }
         changes.push("removed_canned_opener");
         break;
+      }
+    }
+
+    if (modelVariant === "humano-1") {
+      const voiceCleaned = cleanStockHumanoVoice(content);
+      if (voiceCleaned.changes.length > 0) {
+        content = voiceCleaned.content;
+        changes.push(...voiceCleaned.changes);
       }
     }
 

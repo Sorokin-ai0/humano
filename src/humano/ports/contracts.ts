@@ -143,11 +143,16 @@ export interface PromptComposer {
     original: PromptEnvelope,
     candidate: string,
     evaluation: ResponseEvaluation,
+    modelVariant?: ModelVariant,
   ): PromptEnvelope;
 }
 
 export interface NaturalnessFilter {
-  process(content: string, plan: ConversationPlan): Promise<FilterResult>;
+  process(
+    content: string,
+    plan: ConversationPlan,
+    modelVariant?: ModelVariant,
+  ): Promise<FilterResult>;
 }
 
 export interface AdviceStyleFilter {
@@ -162,6 +167,7 @@ export interface ResponseValidator {
     emotions: EmotionAssessment;
     memories: RetrievedMemory[];
     history: ConversationTurn[];
+    modelVariant?: ModelVariant;
   }): Promise<ResponseEvaluation>;
 }
 

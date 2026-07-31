@@ -36,7 +36,20 @@ import type {
   TokenEstimator,
   TrainingEventRepository,
 } from "../ports/contracts";
-import { countWords, redactSecrets, stableHash } from "../core/text";
+import {
+  countWords,
+  lexicalOverlap,
+  redactSecrets,
+  stableHash,
+} from "../core/text";
+import { preservesEditoriallyProtectedContent } from "../core/humano-voice-policy";
+
+const flagshipVoiceOnlyIssues = new Set([
+  "banned_assistant_language",
+  "remove_banned_assistant_language",
+  "remove_canned_language",
+  "humanize_flagship_voice",
+]);
 
 export interface HumanoConversationEngineDependencies {
   config: HumanoConfig;
@@ -240,6 +253,7 @@ export class HumanoConversationEngine {
     const firstFiltered = await this.dependencies.naturalness.process(
       firstGeneration.content,
       plan,
+      modelVariant,
     );
     const firstEvaluation = await this.dependencies.validator.evaluate({
       response: firstFiltered.content,
@@ -248,6 +262,7 @@ export class HumanoConversationEngine {
       emotions,
       memories,
       history,
+      modelVariant,
     });
     const selected = await this.selectCandidate({
       firstGeneration,
@@ -284,6 +299,7 @@ export class HumanoConversationEngine {
         emotions,
         memories,
         history,
+        modelVariant,
       });
     }
     const unresolvedAdviceClarification =
@@ -333,7 +349,17 @@ export class HumanoConversationEngine {
       recoveryReason = "used_safe_fallback";
     }
     if (recoveryReason) {
-      finalFilterChanges = [...finalFilterChanges, recoveryReason];
+      const recoveryFiltered = await this.dependencies.naturalness.process(
+        finalContent,
+        plan,
+        modelVariant,
+      );
+      finalContent = recoveryFiltered.content.trim();
+      finalFilterChanges = [
+        ...finalFilterChanges,
+        recoveryReason,
+        ...recoveryFiltered.changes,
+      ];
       finalEvaluation = await this.dependencies.validator.evaluate({
         response: finalContent,
         userText: input.message,
@@ -341,6 +367,30 @@ export class HumanoConversationEngine {
         emotions,
         memories,
         history,
+        modelVariant,
+      });
+    }
+    if (
+      finalEvaluation.hardViolations.includes(
+        "banned_assistant_language",
+      )
+    ) {
+      finalContent = plan.decisionTags.includes("IDENTITY_TRANSPARENCY")
+        ? "I'm an AI, not a person."
+        : "That came out wrong. Try me again.";
+      finalFilterChanges = [
+        ...finalFilterChanges,
+        "used_safe_fallback",
+        "used_voice_safe_fallback",
+      ];
+      finalEvaluation = await this.dependencies.validator.evaluate({
+        response: finalContent,
+        userText: input.message,
+        plan,
+        emotions,
+        memories,
+        history,
+        modelVariant,
       });
     }
     const assistantTurnId = this.dependencies.ids.create() as TurnId;
@@ -469,14 +519,19 @@ export class HumanoConversationEngine {
       filterChanges: input.firstChanges,
       evaluation: input.firstEvaluation,
     };
+    const flagshipEditorialPass =
+      input.generationRequest.modelVariant === "humano-1";
+    // Humano-1's editor is a required output stage, not an optional alternate
+    // candidate. Legacy revision caps still govern H1's single-pass path.
     if (
-      input.firstEvaluation.action === "accept" ||
-      this.dependencies.config.validator.maxCandidates < 2 ||
-      !this.dependencies.config.generationProfiles[
-        input.generationRequest.modelVariant
-      ].allowRevision ||
-      (input.plan.mode === "debate" &&
-        !this.dependencies.config.modes.debate.allowRevision)
+      !flagshipEditorialPass &&
+      (input.firstEvaluation.action === "accept" ||
+        this.dependencies.config.validator.maxCandidates < 2 ||
+        !this.dependencies.config.generationProfiles[
+          input.generationRequest.modelVariant
+        ].allowRevision ||
+        (input.plan.mode === "debate" &&
+          !this.dependencies.config.modes.debate.allowRevision))
     ) {
       return first;
     }
@@ -485,14 +540,34 @@ export class HumanoConversationEngine {
       input.prompt,
       input.firstContent,
       input.firstEvaluation,
+      input.generationRequest.modelVariant,
     );
-    const revisionGeneration = await this.dependencies.model.generate({
-      ...input.generationRequest,
-      messages: revisionPrompt.messages,
-    });
+    let revisionGeneration: GenerationResult;
+    try {
+      revisionGeneration = await this.dependencies.model.generate({
+        ...input.generationRequest,
+        messages: revisionPrompt.messages,
+        temperature: Math.min(input.generationRequest.temperature, 0.35),
+        topP: Math.min(input.generationRequest.topP, 0.85),
+        presencePenalty: Math.min(
+          input.generationRequest.presencePenalty,
+          0.05,
+        ),
+      });
+    } catch (error) {
+      if (!flagshipEditorialPass) throw error;
+      return {
+        ...first,
+        filterChanges: [
+          ...first.filterChanges,
+          "flagship_voice_pass_failed",
+        ],
+      };
+    }
     const revisionFiltered = await this.dependencies.naturalness.process(
       revisionGeneration.content,
       input.plan,
+      input.generationRequest.modelVariant,
     );
     const revisionEvaluation = await this.dependencies.validator.evaluate({
       response: revisionFiltered.content,
@@ -501,6 +576,7 @@ export class HumanoConversationEngine {
       emotions: input.emotions,
       memories: input.memories,
       history: input.history,
+      modelVariant: input.generationRequest.modelVariant,
     });
     const revision = {
       generation: revisionGeneration,
@@ -508,6 +584,7 @@ export class HumanoConversationEngine {
       filterChanges: [
         ...input.firstChanges,
         "model_revision",
+        ...(flagshipEditorialPass ? ["flagship_voice_pass"] : []),
         ...revisionFiltered.changes,
       ],
       evaluation: revisionEvaluation,
@@ -520,6 +597,126 @@ export class HumanoConversationEngine {
       ...revisionEvaluation.hardViolations,
       ...revisionEvaluation.revisionTags,
     ]);
+    const voiceOnlyFirstDraft = [...firstIssues].every((issue) =>
+      flagshipVoiceOnlyIssues.has(issue),
+    );
+    const removesUnsupportedPrecision = firstIssues.has(
+      "remove_unsupported_debate_precision",
+    );
+    const permitsPolarityRepair =
+      !voiceOnlyFirstDraft ||
+      firstIssues.has("false_human_identity") ||
+      firstIssues.has("identity_evasion") ||
+      firstIssues.has("avoid_unsolicited_ai_disclaimer");
+    const permitsModalityRepair =
+      !voiceOnlyFirstDraft ||
+      firstIssues.has("reduce_prescriptive_tone") ||
+      firstIssues.has("add_advice_rationale");
+    const editorialProtection = {
+      allowNumericChanges: removesUnsupportedPrecision,
+      allowQuotationChanges: removesUnsupportedPrecision,
+      allowNameAdditions: input.firstEvaluation.action !== "accept",
+      allowPolarityChanges: permitsPolarityRepair,
+      allowModalityChanges: permitsModalityRepair,
+      allowFormatItemChanges: input.firstEvaluation.action !== "accept",
+      protectNames: true,
+      requiredFormat: input.plan.format,
+    } as const;
+    const revisionPreservesProtectedContent =
+      !flagshipEditorialPass ||
+      preservesEditoriallyProtectedContent(
+        input.firstContent,
+        revision.content,
+        editorialProtection,
+      );
+    const bannedFirstDraft =
+      input.firstEvaluation.hardViolations.includes(
+        "banned_assistant_language",
+      );
+    const bannedRevision =
+      revisionEvaluation.hardViolations.includes(
+        "banned_assistant_language",
+      );
+    const needsFlagshipRepair =
+      (bannedFirstDraft && bannedRevision) ||
+      (input.firstEvaluation.hardViolations.length > 0 &&
+        !revisionPreservesProtectedContent);
+    if (flagshipEditorialPass && needsFlagshipRepair) {
+      const repairPrompt = this.dependencies.prompts.composeRevision(
+        input.prompt,
+        input.firstContent,
+        input.firstEvaluation,
+        input.generationRequest.modelVariant,
+      );
+      let repairGeneration: GenerationResult;
+      try {
+        repairGeneration = await this.dependencies.model.generate({
+          ...input.generationRequest,
+          messages: repairPrompt.messages,
+          temperature: Math.min(input.generationRequest.temperature, 0.2),
+          topP: Math.min(input.generationRequest.topP, 0.75),
+          presencePenalty: 0,
+        });
+      } catch {
+        return {
+          ...first,
+          filterChanges: [
+            ...first.filterChanges,
+            "flagship_voice_repair_failed",
+          ],
+        };
+      }
+      const repairFiltered = await this.dependencies.naturalness.process(
+        repairGeneration.content,
+        input.plan,
+        input.generationRequest.modelVariant,
+      );
+      const repairEvaluation = await this.dependencies.validator.evaluate({
+        response: repairFiltered.content,
+        userText: input.userText,
+        plan: input.plan,
+        emotions: input.emotions,
+        memories: input.memories,
+        history: input.history,
+        modelVariant: input.generationRequest.modelVariant,
+      });
+      const repairIssues = new Set([
+        ...repairEvaluation.hardViolations,
+        ...repairEvaluation.revisionTags,
+      ]);
+      const repairIntroducedIssue = [...repairIssues].some(
+        (issue) => !firstIssues.has(issue),
+      );
+      const repairPreservesProtectedContent =
+        preservesEditoriallyProtectedContent(
+          input.firstContent,
+          repairFiltered.content,
+          editorialProtection,
+        );
+      const repairMeaningRetained =
+        !voiceOnlyFirstDraft ||
+        repairFiltered.content === input.firstContent ||
+        lexicalOverlap(input.firstContent, repairFiltered.content) >= 0.72;
+      if (
+        repairPreservesProtectedContent &&
+        repairMeaningRetained &&
+        repairEvaluation.hardViolations.length === 0 &&
+        !repairIntroducedIssue &&
+        (repairEvaluation.action === "accept" ||
+          repairIssues.size < revisionIssues.size)
+      ) {
+        return {
+          generation: repairGeneration,
+          content: repairFiltered.content,
+          filterChanges: [
+            ...revision.filterChanges,
+            "flagship_voice_repair",
+            ...repairFiltered.changes,
+          ],
+          evaluation: repairEvaluation,
+        };
+      }
+    }
     const reducedRequestedIssues =
       revisionIssues.size < firstIssues.size &&
       [...firstIssues].some((issue) => !revisionIssues.has(issue));
@@ -539,14 +736,35 @@ export class HumanoConversationEngine {
       revisionEvaluation.scores.consideredOpinionFit -
         input.firstEvaluation.scores.consideredOpinionFit >=
       this.dependencies.config.validator.adviceImprovementThreshold;
+    const revisionIntroducedIssue = [...revisionIssues].some(
+      (issue) => !firstIssues.has(issue),
+    );
+    const editorialMeaningRetained =
+      !voiceOnlyFirstDraft ||
+      revision.content === input.firstContent ||
+      lexicalOverlap(input.firstContent, revision.content) >= 0.72;
+    const flagshipRevisionEligible =
+      !flagshipEditorialPass ||
+      (!revisionIntroducedIssue && editorialMeaningRetained);
+    const cleanFlagshipEditorialPass =
+      flagshipEditorialPass &&
+      input.firstEvaluation.action === "accept" &&
+      revisionPreservesProtectedContent &&
+      revisionEvaluation.hardViolations.length === 0 &&
+      flagshipRevisionEligible &&
+      scoreWithinRevisionTolerance;
 
     if (
+      revisionPreservesProtectedContent &&
       revisionEvaluation.hardViolations.length === 0 &&
-      (input.firstEvaluation.hardViolations.length > 0 ||
+      flagshipRevisionEligible &&
+      ((input.firstEvaluation.hardViolations.length > 0 &&
+        revisionEvaluation.action !== "regenerate") ||
         adviceReadinessMateriallyImproved ||
         consideredOpinionMateriallyImproved ||
         (reducedRequestedIssues && scoreWithinRevisionTolerance) ||
         (sufficiencyMateriallyImproved && scoreWithinRevisionTolerance) ||
+        cleanFlagshipEditorialPass ||
         revisionEvaluation.overall >= input.firstEvaluation.overall)
     ) {
       return revision;

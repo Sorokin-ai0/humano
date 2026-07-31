@@ -1,6 +1,7 @@
 import type { HumanoConfig } from "../../config/schema";
 import type { ResponseEvaluation } from "../../domain/types";
 import type { ResponseValidator } from "../../ports/contracts";
+import { inspectHumanoVoice } from "../../core/humano-voice-policy";
 import {
   clamp,
   countPatternHits,
@@ -28,14 +29,16 @@ export class RuleResponseValidator implements ResponseValidator {
     const lower = response.toLocaleLowerCase();
     const wordCount = countWords(response);
     const sentenceCount = countSentences(response);
-    const hardPhraseHits = countPatternHits(
-      lower,
+    const flagshipVoicePolicy =
+      (input.modelVariant ?? "humano-1") === "humano-1";
+    const voiceInspection = inspectHumanoVoice(
+      response,
       this.naturalnessConfig.hardPhrases,
-    );
-    const softPhraseHits = countPatternHits(
-      lower,
       this.naturalnessConfig.softPhrases,
+      flagshipVoicePolicy,
     );
+    const hardPhraseHits = voiceInspection.hard.length;
+    const softPhraseHits = voiceInspection.soft.length;
     const unsolicitedDisclaimer =
       !input.plan.decisionTags.includes("IDENTITY_TRANSPARENCY") &&
       includesAny(lower, this.config.unsolicitedDisclaimerPatterns);
@@ -374,6 +377,9 @@ export class RuleResponseValidator implements ResponseValidator {
     if (includesAny(lower, this.config.internalLeakPatterns)) {
       hardViolations.push("internal_state_leak");
     }
+    if (flagshipVoicePolicy && hardPhraseHits > 0) {
+      hardViolations.push("banned_assistant_language");
+    }
     if (
       clarificationAdvice &&
       conversationalQuestionCount !== 1
@@ -431,6 +437,12 @@ export class RuleResponseValidator implements ResponseValidator {
     const revisionTags = [
       hardPhraseHits > 0 || softPhraseHits > 0 || roboticWordingRisk > 0.25
         ? "remove_canned_language"
+        : "",
+      flagshipVoicePolicy && hardPhraseHits > 0
+        ? "remove_banned_assistant_language"
+        : "",
+      flagshipVoicePolicy && softPhraseHits > 0
+        ? "humanize_flagship_voice"
         : "",
       severeLengthViolation ? "severe_length_violation" : "",
       wordCount > hardMaxWords ? "trim_optional_detail" : "",
