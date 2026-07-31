@@ -7,33 +7,6 @@ export interface ResearchConsentClaims {
   subjectId: string;
 }
 
-interface CloudflareRequest extends Request {
-  cf?: {
-    country?: string;
-  };
-}
-
-export function requestCountry(request: Request): string | null {
-  const cloudflareCountry = (request as CloudflareRequest).cf?.country;
-  const headerCountry = request.headers.get("CF-IPCountry");
-  const vercelCountry = request.headers.get("x-vercel-ip-country");
-  return (
-    cloudflareCountry ??
-    headerCountry ??
-    vercelCountry
-  )?.toUpperCase() ?? null;
-}
-
-export function isUnitedStatesRequest(request: Request): boolean {
-  const country = requestCountry(request);
-  if (country) return country === "US";
-
-  // Vercel does not guarantee a geolocation header on every preview or
-  // proxied request. The preview's explicit U.S. and no-VPN attestations
-  // remain required when the hosting layer cannot establish a country.
-  return true;
-}
-
 function researchConsentCookieValue(request: Request): string | null {
   const cookieHeader = request.headers.get("Cookie") ?? "";
   return (
@@ -68,21 +41,6 @@ export async function researchConsentClaims(
 export async function requireResearchPreviewAccess(
   request: Request,
 ): Promise<Response | null> {
-  if (!isUnitedStatesRequest(request)) {
-    return Response.json(
-      {
-        error: {
-          code: "RESEARCH_PREVIEW_REGION_RESTRICTED",
-          message:
-            "The Humano research preview is currently limited to eligible adults in the United States using a direct connection.",
-        },
-      },
-      {
-        status: 403,
-        headers: { "Cache-Control": "no-store" },
-      },
-    );
-  }
   if (!(await researchConsentClaims(request))) {
     return Response.json(
       {
