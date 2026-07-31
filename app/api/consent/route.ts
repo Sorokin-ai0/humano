@@ -25,12 +25,10 @@ const consentSchema = z.object({
 });
 
 export async function GET(request: Request) {
-  const eligibleCountry = true;
   const accepted = (await researchConsentClaims(request)) !== null;
   return Response.json(
     {
       accepted,
-      eligibleCountry,
       version: researchPreviewConsentVersion,
     },
     { headers: { "Cache-Control": "no-store" } },
